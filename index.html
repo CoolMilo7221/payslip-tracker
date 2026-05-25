@@ -686,7 +686,7 @@ Keys required: period (e.g. "April 2025"), employer, date (YYYY-MM-DD format), t
 Return ONLY the JSON object, no markdown, no explanation.`;
 
     // Direct Gemini API call — works from GitHub Pages (no CORS issue)
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
