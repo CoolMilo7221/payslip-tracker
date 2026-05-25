@@ -219,7 +219,7 @@ html, body { height: 100%; background: var(--bg); font-family: 'DM Sans', sans-s
     <div class="login-sub">Sign in to manage your payslips</div>
     <div class="field"><label>Username</label><input type="text" id="login-user" placeholder="Enter username" autocomplete="username" /></div>
     <div class="field"><label>Password</label><input type="password" id="login-pass" placeholder="Enter password" autocomplete="current-password" /></div>
-    <button class="btn-primary" onclick="doLogin()">Sign in</button>
+    <button class="btn-primary" id="login-btn">Sign in</button>
     <div class="login-error" id="login-error">Incorrect username or password.</div>
     <div class="login-hint">Default: <code>admin</code> / <code>payslips</code></div>
   </div>
@@ -312,6 +312,14 @@ html, body { height: 100%; background: var(--bg); font-family: 'DM Sans', sans-s
 </div>
 
 <script>
+// Global error catcher - surfaces silent JS errors
+window.onerror = function(msg, src, line, col, err) {
+  document.body.insertAdjacentHTML('afterbegin',
+    '<div style="position:fixed;top:0;left:0;right:0;background:#8B2E2E;color:#fff;padding:12px;font-size:13px;z-index:9999;font-family:monospace;">' +
+    '⚠ JS Error: ' + msg + ' (line ' + line + ')</div>'
+  );
+};
+
 // ══ AUTH ══
 const USERS = { admin: 'payslips' };
 let currentUser = null;
@@ -335,6 +343,7 @@ function doLogout() {
   document.getElementById('login-pass').value = '';
 }
 document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('login-btn').addEventListener('click', doLogin);
 
 // Pre-save provided Gemini key if not already set
 (function() {
