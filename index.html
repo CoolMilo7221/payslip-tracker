@@ -1,210 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Payslip Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #F4F1EB;
-  --surface: #FAFAF7;
-  --surface2: #EFECE4;
-  --border: #D8D4C8;
-  --border2: #C4BFB0;
-  --text: #1C1B18;
-  --text2: #6B6760;
-  --text3: #9C9890;
-  --accent: #2A5C45;
-  --accent-light: #EAF2EC;
-  --accent-mid: #4A8C6A;
-  --danger: #8B2E2E;
-  --danger-light: #F5EAEA;
-  --warn: #7A5200;
-  --warn-light: #FDF6E3;
-  --warn-border: #E8C97A;
-  --radius: 10px;
-  --radius-lg: 16px;
-  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.06);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.10), 0 0 0 0.5px rgba(0,0,0,0.06);
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F4F1EB;--surface:#FAFAF7;--surface2:#EFECE4;--border:#D8D4C8;--border2:#C4BFB0;
+  --text:#1C1B18;--text2:#6B6760;--text3:#9C9890;
+  --accent:#2A5C45;--accent-light:#EAF2EC;--accent-mid:#4A8C6A;
+  --danger:#8B2E2E;--danger-light:#F5EAEA;
+  --warn:#7A5200;--warn-light:#FDF6E3;--warn-border:#E8C97A;
+  --radius:10px;--radius-lg:16px;
+  --shadow:0 1px 3px rgba(0,0,0,0.08),0 0 0 0.5px rgba(0,0,0,0.06);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.10),0 0 0 0.5px rgba(0,0,0,0.06);
 }
-html, body { height: 100%; background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); font-size: 15px; line-height: 1.5; }
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes fadeIn { from { opacity:0; transform:translateY(6px);} to { opacity:1; transform:none; } }
+html,body{height:100%;background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-height:1.5}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-/* SCREENS */
-.screen { display: none; min-height: 100vh; }
-.screen.active { display: flex; }
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex}
 
 /* LOGIN */
-#s-login { align-items: center; justify-content: center; background: var(--bg); background-image: radial-gradient(circle at 20% 80%, #d4e8dc 0%, transparent 50%), radial-gradient(circle at 80% 20%, #e8e4d4 0%, transparent 50%); }
-.login-box { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: 2.5rem; width: 360px; }
-.login-logo { width: 48px; height: 48px; background: var(--accent); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; }
-.login-logo svg { width: 26px; height: 26px; stroke: #fff; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.login-title { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--text); margin-bottom: 4px; }
-.login-sub { font-size: 13px; color: var(--text2); margin-bottom: 2rem; }
-.field { margin-bottom: 1rem; }
-.field label { display: block; font-size: 12px; font-weight: 500; color: var(--text2); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 6px; }
-.field input, .field select { width: 100%; padding: 10px 14px; background: var(--bg); border: 0.5px solid var(--border2); border-radius: var(--radius); font-family: inherit; font-size: 14px; color: var(--text); outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
-.field input:focus, .field select:focus { border-color: var(--accent-mid); box-shadow: 0 0 0 3px rgba(42,92,69,0.1); }
-.btn-primary { width: 100%; padding: 11px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 0.5rem; transition: background 0.15s, transform 0.1s; }
-.btn-primary:hover { background: #214a38; }
-.btn-primary:active { transform: scale(0.98); }
-.login-error { background: var(--danger-light); color: var(--danger); font-size: 13px; padding: 10px 14px; border-radius: var(--radius); border: 0.5px solid #e8c0c0; margin-top: 1rem; display: none; }
-.login-hint { font-size: 12px; color: var(--text3); margin-top: 1.25rem; text-align: center; }
-.login-hint code { font-family: 'DM Mono', monospace; background: var(--surface2); padding: 1px 6px; border-radius: 4px; }
+#s-login{align-items:center;justify-content:center;background:var(--bg);background-image:radial-gradient(circle at 20% 80%,#d4e8dc 0%,transparent 50%),radial-gradient(circle at 80% 20%,#e8e4d4 0%,transparent 50%)}
+.login-box{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:2.5rem;width:360px}
+.login-logo{width:48px;height:48px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem}
+.login-logo svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.login-title{font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:2rem}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--text2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px}
+.field input,.field select{width:100%;padding:10px 14px;background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--radius);font-family:inherit;font-size:14px;color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s}
+.field input:focus,.field select:focus{border-color:var(--accent-mid);box-shadow:0 0 0 3px rgba(42,92,69,.1)}
+.btn-primary{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;margin-top:.5rem;transition:background .15s}
+.btn-primary:hover{background:#214a38}
+.login-error{background:var(--danger-light);color:var(--danger);font-size:13px;padding:10px 14px;border-radius:var(--radius);border:0.5px solid #e8c0c0;margin-top:1rem;display:none}
+.login-hint{font-size:12px;color:var(--text3);margin-top:1.25rem;text-align:center}
+.login-hint code{font-family:'DM Mono',monospace;background:var(--surface2);padding:1px 6px;border-radius:4px}
 
-/* APP SHELL */
-#s-app { flex-direction: column; }
-.topbar { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 0 2rem; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-.topbar-brand { display: flex; align-items: center; gap: 10px; }
-.topbar-logo { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-.topbar-logo svg { width: 18px; height: 18px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.topbar-name { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--text); }
-.topbar-right { display: flex; align-items: center; gap: 12px; }
-.topbar-user { font-size: 13px; color: var(--text2); }
-.btn-ghost { padding: 7px 14px; background: transparent; border: 0.5px solid var(--border2); border-radius: var(--radius); font-family: inherit; font-size: 13px; color: var(--text); cursor: pointer; transition: background 0.12s; }
-.btn-ghost:hover { background: var(--surface2); }
-.app-body { flex: 1; padding: 2rem; max-width: 960px; margin: 0 auto; width: 100%; }
+/* APP */
+#s-app{flex-direction:column}
+.topbar{background:var(--surface);border-bottom:0.5px solid var(--border);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-brand{display:flex;align-items:center;gap:10px}
+.topbar-logo{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.topbar-logo svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.topbar-name{font-family:'DM Serif Display',serif;font-size:18px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.topbar-user{font-size:13px;color:var(--text2)}
+.btn-ghost{padding:7px 14px;background:transparent;border:0.5px solid var(--border2);border-radius:var(--radius);font-family:inherit;font-size:13px;color:var(--text);cursor:pointer;transition:background .12s}
+.btn-ghost:hover{background:var(--surface2)}
+.app-body{flex:1;padding:2rem;max-width:960px;margin:0 auto;width:100%}
 
 /* TABS */
-.tabs { display: flex; gap: 4px; margin-bottom: 2rem; background: var(--surface2); padding: 4px; border-radius: var(--radius); width: fit-content; flex-wrap: wrap; }
-.tab { padding: 7px 18px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: transparent; color: var(--text2); font-family: inherit; transition: all 0.15s; }
-.tab.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
-.tab-panel { display: none; }
-.tab-panel.active-tab { display: block; }
+.tabs{display:flex;gap:4px;margin-bottom:2rem;background:var(--surface2);padding:4px;border-radius:var(--radius);width:fit-content;flex-wrap:wrap}
+.tab{padding:7px 18px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text2);font-family:inherit;transition:all .15s}
+.tab.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+.tab-panel{display:none}
+.tab-panel.active-tab{display:block}
 
 /* STATS */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 2rem; }
-.stat-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; }
-.stat-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); margin-bottom: 6px; }
-.stat-value { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--text); line-height: 1.1; }
-.stat-sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:2rem}
+.stat-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem}
+.stat-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:6px}
+.stat-value{font-family:'DM Serif Display',serif;font-size:24px;color:var(--text);line-height:1.1}
+.stat-sub{font-size:12px;color:var(--text2);margin-top:4px}
 
 /* HOURS */
-.hours-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
-.hours-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 4px; }
-.hours-type { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
-.hours-val { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--text); }
-.hours-rate { font-size: 12px; color: var(--text2); }
-.type-mf { color: #2A5C45; } .type-sat { color: #185FA5; } .type-sun { color: #7A5A1A; } .type-ph { color: #8B2E2E; }
+.hours-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.5rem}
+.hours-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;display:flex;flex-direction:column;gap:4px}
+.hours-type{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+.hours-val{font-family:'DM Serif Display',serif;font-size:24px;color:var(--text)}
+.hours-rate{font-size:12px;color:var(--text2)}
+.type-mf{color:#2A5C45}.type-sat{color:#185FA5}.type-sun{color:#7A5A1A}.type-ph{color:#8B2E2E}
 
 /* PAYSLIP LIST */
-.section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
-.section-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); }
-.payslip-list { display: flex; flex-direction: column; gap: 8px; }
-.payslip-row { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem; transition: border-color 0.12s, box-shadow 0.12s; }
-.payslip-row:hover { border-color: var(--border2); box-shadow: var(--shadow); }
-.payslip-icon { width: 38px; height: 38px; background: var(--accent-light); border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.payslip-icon svg { width: 20px; height: 20px; stroke: var(--accent); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.payslip-info { flex: 1; min-width: 0; }
-.payslip-period { font-size: 14px; font-weight: 500; color: var(--text); }
-.payslip-employer { font-size: 12px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.payslip-meta { font-size: 11px; color: var(--text3); margin-top: 2px; font-family: 'DM Mono', monospace; }
-.payslip-amounts { text-align: right; margin-right: 12px; flex-shrink: 0; }
-.payslip-gross { font-size: 14px; font-weight: 500; color: var(--text); }
-.payslip-net { font-size: 12px; color: var(--text2); }
-.payslip-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); white-space: nowrap; margin-right: 8px; flex-shrink: 0; }
-.btn-delete { background: transparent; border: none; cursor: pointer; color: var(--text3); padding: 6px; border-radius: 6px; transition: background 0.12s, color 0.12s; flex-shrink: 0; }
-.btn-delete:hover { background: var(--danger-light); color: var(--danger); }
-.btn-delete svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.btn-view-pdf { background: transparent; border: none; cursor: pointer; color: var(--accent-mid); font-size: 12px; font-family: inherit; text-decoration: underline; text-underline-offset: 2px; padding: 0; }
-.btn-view-pdf:hover { color: var(--accent); }
-.empty-state { text-align: center; padding: 3rem 1rem; color: var(--text2); }
-.empty-icon { width: 56px; height: 56px; background: var(--surface2); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
-.empty-icon svg { width: 28px; height: 28px; stroke: var(--text3); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.section-title{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)}
+.payslip-list{display:flex;flex-direction:column;gap:8px}
+.payslip-row{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;transition:border-color .12s,box-shadow .12s}
+.payslip-row:hover{border-color:var(--border2);box-shadow:var(--shadow)}
+.payslip-icon{width:38px;height:38px;background:var(--accent-light);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.payslip-icon svg{width:20px;height:20px;stroke:var(--accent);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.payslip-info{flex:1;min-width:0}
+.payslip-period{font-size:14px;font-weight:500;color:var(--text)}
+.payslip-employer{font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.payslip-meta{font-size:11px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace}
+.payslip-amounts{text-align:right;margin-right:12px;flex-shrink:0}
+.payslip-gross{font-size:14px;font-weight:500;color:var(--text)}
+.payslip-net{font-size:12px;color:var(--text2)}
+.payslip-date{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);white-space:nowrap;margin-right:8px;flex-shrink:0}
+.btn-del{background:transparent;border:none;cursor:pointer;color:var(--text3);padding:6px;border-radius:6px;transition:background .12s,color .12s;flex-shrink:0}
+.btn-del:hover{background:var(--danger-light);color:var(--danger)}
+.btn-del svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.btn-view-pdf{background:transparent;border:none;cursor:pointer;color:var(--accent-mid);font-size:12px;font-family:inherit;text-decoration:underline;text-underline-offset:2px;padding:0}
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--text2)}
+.empty-icon{width:56px;height:56px;background:var(--surface2);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem}
+.empty-icon svg{width:28px;height:28px;stroke:var(--text3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 
 /* CHARTS */
-.chart-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; }
-.chart-card-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
-.chart-card-sub { font-size: 12px; color: var(--text2); margin-bottom: 1.25rem; }
-.chart-wrap { position: relative; height: 240px; }
+.chart-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.5rem}
+.chart-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}
+.chart-sub{font-size:12px;color:var(--text2);margin-bottom:1.25rem}
+.chart-wrap{position:relative;height:240px}
 
 /* DROPZONE */
-.dropzone { border: 2px dashed var(--border2); border-radius: var(--radius-lg); padding: 2.5rem 2rem; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; background: var(--surface); margin-bottom: 1.25rem; position: relative; }
-.dropzone:hover, .dropzone.drag-over { border-color: var(--accent-mid); background: var(--accent-light); }
-.dropzone-icon { width: 52px; height: 52px; background: var(--accent-light); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
-.dropzone-icon svg { width: 26px; height: 26px; stroke: var(--accent); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.dropzone h3 { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
-.dropzone p { font-size: 13px; color: var(--text2); }
-.dropzone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.dropzone{border:2px dashed var(--border2);border-radius:var(--radius-lg);padding:2.5rem 2rem;text-align:center;cursor:pointer;transition:border-color .15s,background .15s;background:var(--surface);margin-bottom:1.25rem;position:relative}
+.dropzone:hover,.dropzone.drag-over{border-color:var(--accent-mid);background:var(--accent-light)}
+.dropzone-icon{width:52px;height:52px;background:var(--accent-light);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem}
+.dropzone-icon svg{width:26px;height:26px;stroke:var(--accent);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.dropzone h3{font-size:15px;font-weight:500;color:var(--text);margin-bottom:4px}
+.dropzone p{font-size:13px;color:var(--text2)}
+.dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
 
 /* QUEUE */
-.queue-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 1.5rem; }
-.queue-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; animation: fadeIn 0.2s ease; }
-.queue-header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 0.5px solid var(--border); background: var(--surface2); }
-.queue-filename { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.queue-status { font-size: 12px; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
-.status-extracting { background: var(--accent-light); color: var(--accent); }
-.status-review { background: #E8F0FD; color: #1A4FAF; }
-.status-duplicate { background: var(--warn-light); color: var(--warn); border: 0.5px solid var(--warn-border); }
-.status-saved { background: var(--accent-light); color: var(--accent); }
-.status-error { background: var(--danger-light); color: var(--danger); }
-.queue-remove { background: transparent; border: none; cursor: pointer; color: var(--text3); padding: 4px; border-radius: 5px; flex-shrink: 0; }
-.queue-remove:hover { background: var(--danger-light); color: var(--danger); }
-.queue-remove svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
-.queue-body { padding: 16px; }
-.queue-spinner { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text2); padding: 4px 0; }
-.queue-spinner svg { animation: spin 1s linear infinite; width: 18px; height: 18px; stroke: var(--accent); fill: none; stroke-width: 2; stroke-linecap: round; flex-shrink: 0; }
-.dup-warn { display: flex; align-items: flex-start; gap: 10px; background: var(--warn-light); border: 0.5px solid var(--warn-border); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; font-size: 13px; color: var(--warn); }
-.dup-warn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; margin-top: 1px; }
+.queue-list{display:flex;flex-direction:column;gap:12px;margin-bottom:1.5rem}
+.queue-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;animation:fadeIn .2s ease}
+.queue-header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:0.5px solid var(--border);background:var(--surface2)}
+.queue-filename{font-size:13px;font-weight:500;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.q-status{font-size:12px;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.s-extracting{background:var(--accent-light);color:var(--accent)}
+.s-review{background:#E8F0FD;color:#1A4FAF}
+.s-duplicate{background:var(--warn-light);color:var(--warn);border:0.5px solid var(--warn-border)}
+.s-saved{background:var(--accent-light);color:var(--accent)}
+.s-error{background:var(--danger-light);color:var(--danger)}
+.queue-remove{background:transparent;border:none;cursor:pointer;color:var(--text3);padding:4px;border-radius:5px;flex-shrink:0}
+.queue-remove:hover{background:var(--danger-light);color:var(--danger)}
+.queue-remove svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.queue-body{padding:16px}
+.q-spinner{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);padding:4px 0}
+.q-spinner svg{animation:spin 1s linear infinite;width:18px;height:18px;stroke:var(--accent);fill:none;stroke-width:2;stroke-linecap:round;flex-shrink:0}
+.dup-warn{display:flex;align-items:flex-start;gap:10px;background:var(--warn-light);border:0.5px solid var(--warn-border);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--warn)}
+.dup-warn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;margin-top:1px}
+.saved-msg{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--accent);padding:4px 0}
+.saved-msg svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.error-msg{font-size:13px;color:var(--danger);padding:4px 0}
 
-/* MINI FORM inside queue card */
-.mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-.mini-field { display: flex; flex-direction: column; gap: 4px; }
-.mini-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text3); }
-.mini-input { padding: 8px 12px; background: var(--bg); border: 0.5px solid var(--border2); border-radius: var(--radius); font-family: inherit; font-size: 13px; color: var(--text); outline: none; width: 100%; transition: border-color 0.15s; }
-.mini-input:focus { border-color: var(--accent-mid); box-shadow: 0 0 0 2px rgba(42,92,69,0.1); }
-.dollar-mini { position: relative; }
-.dollar-mini .ds { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--text3); pointer-events: none; }
-.dollar-mini input { padding-left: 20px !important; }
-.rate-mini-grid { display: grid; grid-template-columns: 72px 1fr 1fr 1fr; gap: 8px; align-items: end; margin-bottom: 8px; }
-.rate-mini-label { font-size: 12px; font-weight: 600; padding-bottom: 8px; }
-.mini-divider { border: none; border-top: 0.5px solid var(--border); margin: 10px 0; }
-.mini-totals { display: flex; gap: 1.5rem; font-size: 12px; color: var(--text2); margin-bottom: 12px; }
-.mini-totals strong { color: var(--text); }
-.queue-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
-.btn-sm { padding: 7px 16px; font-size: 13px; border-radius: var(--radius); font-family: inherit; cursor: pointer; transition: background 0.12s; border: 0.5px solid var(--border2); background: transparent; color: var(--text); }
-.btn-sm:hover { background: var(--surface2); }
-.btn-sm-primary { background: var(--accent); color: #fff; border: none; }
-.btn-sm-primary:hover { background: #214a38; }
-.btn-sm-warn { background: var(--warn-light); color: var(--warn); border: 0.5px solid var(--warn-border); }
-.btn-sm-warn:hover { background: #f5e9c0; }
-.saved-banner { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--accent); padding: 4px 0; }
-.saved-banner svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-.error-banner { font-size: 13px; color: var(--danger); padding: 4px 0; }
+/* MINI FORM */
+.mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.mini-field{display:flex;flex-direction:column;gap:4px}
+.mini-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--text3)}
+.mini-input{padding:8px 12px;background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--radius);font-family:inherit;font-size:13px;color:var(--text);outline:none;width:100%;transition:border-color .15s}
+.mini-input:focus{border-color:var(--accent-mid);box-shadow:0 0 0 2px rgba(42,92,69,.1)}
+.dollar-mini{position:relative}
+.dollar-mini .ds{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text3);pointer-events:none}
+.dollar-mini input{padding-left:20px!important}
+.rates-header{display:grid;grid-template-columns:72px 1fr 1fr 1fr;gap:8px;margin-bottom:6px}
+.rates-row{display:grid;grid-template-columns:72px 1fr 1fr 1fr;gap:8px;margin-bottom:8px;align-items:center}
+.rate-lbl{font-size:12px;font-weight:600;padding-top:2px}
+.col-hdr{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em}
+.mini-divider{border:none;border-top:0.5px solid var(--border);margin:10px 0}
+.mini-totals{display:flex;gap:1.5rem;font-size:12px;color:var(--text2);margin-bottom:12px}
+.mini-totals strong{color:var(--text)}
+.q-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.btn-sm{padding:7px 16px;font-size:13px;border-radius:var(--radius);font-family:inherit;cursor:pointer;transition:background .12s;border:0.5px solid var(--border2);background:transparent;color:var(--text)}
+.btn-sm:hover{background:var(--surface2)}
+.btn-sm-primary{background:var(--accent);color:#fff;border:none}
+.btn-sm-primary:hover{background:#214a38}
+.btn-sm-warn{background:var(--warn-light);color:var(--warn);border:0.5px solid var(--warn-border)}
 
 /* MISC */
-.form-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; }
-.form-card-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); margin-bottom: 1rem; }
-.divider { border: none; border-top: 0.5px solid var(--border); margin: 1rem 0; }
-.fy-toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text2); }
-.fy-toggle select { padding: 5px 10px; border: 0.5px solid var(--border2); border-radius: var(--radius); font-family: inherit; font-size: 13px; background: var(--surface); color: var(--text); outline: none; cursor: pointer; }
-.batch-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
-.batch-info { font-size: 13px; color: var(--text2); }
-.batch-actions { display: flex; gap: 8px; }
-
-/* MODAL */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 200; }
-.modal-overlay.open { display: flex; }
-.modal-box { background: var(--surface); border-radius: var(--radius-lg); box-shadow: 0 20px 60px rgba(0,0,0,0.25); width: 720px; max-width: 95vw; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; }
-.modal-header { padding: 1rem 1.25rem; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-.modal-title { font-size: 15px; font-weight: 500; color: var(--text); }
-.modal-close { background: transparent; border: none; cursor: pointer; color: var(--text2); padding: 6px; border-radius: 6px; }
-.modal-close:hover { background: var(--surface2); }
-.modal-close svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
-.modal-body { flex: 1; overflow: auto; padding: 1rem; }
-.modal-body iframe { width: 100%; height: 65vh; border: none; border-radius: var(--radius); }
-
-@media (max-width: 620px) {
-  .app-body { padding: 1rem; }
-  .topbar { padding: 0 1rem; }
-  .payslip-amounts, .payslip-date { display: none; }
-  .mini-grid { grid-template-columns: 1fr; }
-  .rate-mini-grid { grid-template-columns: 60px 1fr 1fr; }
-}
+.fy-toggle{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2)}
+.fy-toggle select{padding:5px 10px;border:0.5px solid var(--border2);border-radius:var(--radius);font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);outline:none;cursor:pointer}
+.batch-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
+.batch-info{font-size:13px;color:var(--text2)}
+.batch-actions{display:flex;gap:8px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:200}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--surface);border-radius:var(--radius-lg);box-shadow:0 20px 60px rgba(0,0,0,.25);width:720px;max-width:95vw;max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-header{padding:1rem 1.25rem;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:15px;font-weight:500;color:var(--text)}
+.modal-close{background:transparent;border:none;cursor:pointer;color:var(--text2);padding:6px;border-radius:6px}
+.modal-close:hover{background:var(--surface2)}
+.modal-close svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.modal-body{flex:1;overflow:auto;padding:1rem}
+.modal-body iframe{width:100%;height:65vh;border:none;border-radius:var(--radius)}
+@media(max-width:620px){.app-body{padding:1rem}.topbar{padding:0 1rem}.payslip-amounts,.payslip-date{display:none}.mini-grid{grid-template-columns:1fr}.rates-row,.rates-header{grid-template-columns:60px 1fr 1fr}}
 </style>
 </head>
 <body>
@@ -212,13 +186,11 @@ html, body { height: 100%; background: var(--bg); font-family: 'DM Sans', sans-s
 <!-- LOGIN -->
 <div id="s-login" class="screen active">
   <div class="login-box">
-    <div class="login-logo">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-    </div>
+    <div class="login-logo"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
     <div class="login-title">Payslip Tracker</div>
     <div class="login-sub">Sign in to manage your payslips</div>
-    <div class="field"><label>Username</label><input type="text" id="login-user" placeholder="Enter username" autocomplete="username" /></div>
-    <div class="field"><label>Password</label><input type="password" id="login-pass" placeholder="Enter password" autocomplete="current-password" /></div>
+    <div class="field"><label>Username</label><input type="text" id="login-user" placeholder="Enter username" autocomplete="username"/></div>
+    <div class="field"><label>Password</label><input type="password" id="login-pass" placeholder="Enter password" autocomplete="current-password"/></div>
     <button class="btn-primary" id="login-btn">Sign in</button>
     <div class="login-error" id="login-error">Incorrect username or password.</div>
     <div class="login-hint">Default: <code>admin</code> / <code>payslips</code></div>
@@ -234,23 +206,22 @@ html, body { height: 100%; background: var(--bg); font-family: 'DM Sans', sans-s
     </div>
     <div class="topbar-right">
       <span class="topbar-user" id="topbar-user"></span>
-      <button class="btn-ghost" onclick="changeApiKey()" title="Set or change your Gemini API key">API key</button>
-      <button class="btn-ghost" onclick="doLogout()">Sign out</button>
+      <button class="btn-ghost" id="btn-apikey">API key</button>
+      <button class="btn-ghost" id="btn-logout">Sign out</button>
     </div>
   </div>
-
   <div class="app-body">
     <div class="tabs">
-      <button class="tab active" onclick="switchTab('dashboard')">Dashboard</button>
-      <button class="tab" onclick="switchTab('analytics')">Analytics</button>
-      <button class="tab" onclick="switchTab('upload')">Add payslips</button>
+      <button class="tab active" data-tab="dashboard">Dashboard</button>
+      <button class="tab" data-tab="analytics">Analytics</button>
+      <button class="tab" data-tab="upload">Add payslips</button>
     </div>
 
     <!-- DASHBOARD -->
     <div id="tab-dashboard" class="tab-panel active-tab">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px;">
         <div style="font-size:18px;font-family:'DM Serif Display',serif;">Overview</div>
-        <div class="fy-toggle">Financial year: <select id="fy-select" onchange="renderDashboard()"></select></div>
+        <div class="fy-toggle">Financial year: <select id="fy-select"></select></div>
       </div>
       <div class="stats-grid" id="stats-grid"></div>
       <div class="hours-grid" id="hours-grid"></div>
@@ -262,13 +233,13 @@ html, body { height: 100%; background: var(--bg); font-family: 'DM Sans', sans-s
     <div id="tab-analytics" class="tab-panel">
       <div style="font-size:18px;font-family:'DM Serif Display',serif;margin-bottom:1.5rem;">Analytics</div>
       <div class="chart-card">
-        <div class="chart-card-title">Pay rates over time</div>
-        <div class="chart-card-sub">Hourly rate for each pay type across all payslips ($/hr)</div>
+        <div class="chart-title">Pay rates over time</div>
+        <div class="chart-sub">Hourly rate for each pay type ($/hr)</div>
         <div class="chart-wrap"><canvas id="chart-rates"></canvas></div>
       </div>
       <div class="chart-card">
-        <div class="chart-card-title">Total amount paid</div>
-        <div class="chart-card-sub">Gross pay per payslip over time ($)</div>
+        <div class="chart-title">Total amount paid</div>
+        <div class="chart-sub">Gross pay per payslip ($)</div>
         <div class="chart-wrap"><canvas id="chart-paid"></canvas></div>
       </div>
     </div>
@@ -276,22 +247,18 @@ html, body { height: 100%; background: var(--bg); font-family: 'DM Sans', sans-s
     <!-- UPLOAD -->
     <div id="tab-upload" class="tab-panel">
       <div style="font-size:18px;font-family:'DM Serif Display',serif;margin-bottom:1.25rem;">Add payslips</div>
-
       <div class="dropzone" id="dropzone">
-        <input type="file" accept="application/pdf" id="file-input" multiple />
-        <div class="dropzone-icon">
-          <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
-        </div>
+        <input type="file" accept="application/pdf" id="file-input" multiple/>
+        <div class="dropzone-icon"><svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg></div>
         <h3>Drop PDFs here</h3>
         <p>Drag in one or more payslip PDFs, or click to browse — up to 20 MB each</p>
       </div>
-
       <div id="queue-section" style="display:none;">
         <div class="batch-bar">
           <div class="batch-info" id="batch-info"></div>
           <div class="batch-actions">
-            <button class="btn-ghost" onclick="saveAllReady()">Save all ready</button>
-            <button class="btn-ghost" onclick="clearQueue()">Clear all</button>
+            <button class="btn-ghost" id="btn-save-all">Save all ready</button>
+            <button class="btn-ghost" id="btn-clear-queue">Clear all</button>
           </div>
         </div>
         <div class="queue-list" id="queue-list"></div>
@@ -305,505 +272,465 @@ html, body { height: 100%; background: var(--bg); font-family: 'DM Sans', sans-s
   <div class="modal-box">
     <div class="modal-header">
       <span class="modal-title" id="modal-title">Viewing payslip</span>
-      <button class="modal-close" onclick="closePdfModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <button class="modal-close" id="modal-close-btn"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body"><iframe id="pdf-frame" title="Payslip PDF"></iframe></div>
   </div>
 </div>
 
 <script>
-// Global error catcher - surfaces silent JS errors
-window.onerror = function(msg, src, line, col, err) {
-  document.body.insertAdjacentHTML('afterbegin',
-    '<div style="position:fixed;top:0;left:0;right:0;background:#8B2E2E;color:#fff;padding:12px;font-size:13px;z-index:9999;font-family:monospace;">' +
-    '⚠ JS Error: ' + msg + ' (line ' + line + ')</div>'
-  );
-};
+// ══ HELPERS ══
+var USERS = { admin: 'payslips' };
+var currentUser = null;
+var queue = [];
+var chartRates = null;
+var chartPaid = null;
+
+function $(id){ return document.getElementById(id); }
+function show(id){ $(id).classList.add('active'); }
+function hide(id){ $(id).classList.remove('active'); }
+
+function loadPayslips(){ try{ return JSON.parse(localStorage.getItem('payslips')||'[]'); }catch(e){ return []; } }
+function savePayslips(list){ localStorage.setItem('payslips', JSON.stringify(list)); }
+
+function fmt(n){ if(!n && n!==0) return '—'; return '$'+Number(n).toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function totalGrossOf(p){ var r=p.rates||{}; var f=['mf','sat','sun','ph'].reduce(function(s,k){ return s+(parseFloat(r[k+'_amt'])||0); },0); return f>0?f:(parseFloat(p.gross)||0); }
+function totalHoursOf(p){ var r=p.rates||{}; return ['mf','sat','sun','ph'].reduce(function(s,k){ return s+(parseFloat(r[k+'_hrs'])||0); },0); }
+
+// ══ FY ══
+function getFY(d){ if(!d) return null; var dt=new Date(d); if(isNaN(dt)) return null; return dt.getMonth()>=6?dt.getFullYear()+1:dt.getFullYear(); }
+function fyLabel(fy){ return 'FY'+fy+' (Jul '+(fy-1)+'–Jun '+fy+')'; }
+function currentFY(){ var n=new Date(); return n.getMonth()>=6?n.getFullYear()+1:n.getFullYear(); }
+
+function populateFySelect(){
+  var list=loadPayslips();
+  var fys=[...new Set(list.map(function(p){ return getFY(p.date); }).filter(Boolean))].sort(function(a,b){ return b-a; });
+  var cfY=currentFY();
+  if(!fys.includes(cfY)) fys.unshift(cfY);
+  $('fy-select').innerHTML='<option value="all">All time</option>'+fys.map(function(fy){ return '<option value="'+fy+'"'+(fy===cfY?' selected':'')+'>'+fyLabel(fy)+'</option>'; }).join('');
+}
 
 // ══ AUTH ══
-const USERS = { admin: 'payslips' };
-let currentUser = null;
-function doLogin() {
-  const u = document.getElementById('login-user').value.trim();
-  const p = document.getElementById('login-pass').value;
-  if (USERS[u] && USERS[u] === p) {
-    currentUser = u;
-    document.getElementById('login-error').style.display = 'none';
-    document.getElementById('s-login').classList.remove('active');
-    document.getElementById('s-app').classList.add('active');
-    document.getElementById('topbar-user').textContent = u;
-    populateFySelect(); renderDashboard();
-  } else { document.getElementById('login-error').style.display = 'block'; }
-}
-function doLogout() {
-  currentUser = null;
-  document.getElementById('s-app').classList.remove('active');
-  document.getElementById('s-login').classList.add('active');
-  document.getElementById('login-user').value = '';
-  document.getElementById('login-pass').value = '';
-}
-document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-document.getElementById('login-btn').addEventListener('click', doLogin);
-
-// Pre-save provided Gemini key if not already set
-(function() {
-  if (!localStorage.getItem('gemini_key')) {
-    localStorage.setItem('gemini_key', 'AIzaSyBtATeaKQVND35tF0f7ETxoB9m-if9RGec');
+function doLogin(){
+  var u=$('login-user').value.trim();
+  var p=$('login-pass').value;
+  if(USERS[u] && USERS[u]===p){
+    currentUser=u;
+    $('login-error').style.display='none';
+    hide('s-login');
+    show('s-app');
+    $('topbar-user').textContent=u;
+    populateFySelect();
+    renderDashboard();
+  } else {
+    $('login-error').style.display='block';
   }
-})();
-
-// ══ TABS ══
-const TAB_IDS = ['dashboard','analytics','upload'];
-function switchTab(name) {
-  TAB_IDS.forEach((id, i) => {
-    document.getElementById('tab-'+id).classList.toggle('active-tab', id === name);
-    document.querySelectorAll('.tab')[i].classList.toggle('active', id === name);
-  });
-  if (name === 'analytics') setTimeout(renderCharts, 50);
 }
 
-// ══ STORAGE ══
-function loadPayslips() { try { return JSON.parse(localStorage.getItem('payslips') || '[]'); } catch { return []; } }
-function savePayslips(list) { localStorage.setItem('payslips', JSON.stringify(list)); }
-
-// ══ FY HELPERS ══
-function getFY(dateStr) {
-  if (!dateStr) return null;
-  const d = new Date(dateStr); if (isNaN(d)) return null;
-  return d.getMonth() >= 6 ? d.getFullYear() + 1 : d.getFullYear();
-}
-function fyLabel(fy) { return `FY${fy} (Jul ${fy-1}–Jun ${fy})`; }
-function allFYs(list) { return [...new Set(list.map(p => getFY(p.date)).filter(Boolean))].sort((a,b)=>b-a); }
-function currentFY() { const n = new Date(); return n.getMonth() >= 6 ? n.getFullYear()+1 : n.getFullYear(); }
-function inFY(dateStr, fy) { return getFY(dateStr) === fy; }
-function populateFySelect() {
-  const list = loadPayslips(), fys = allFYs(list), cfY = currentFY();
-  if (!fys.includes(cfY)) fys.unshift(cfY);
-  document.getElementById('fy-select').innerHTML = [
-    '<option value="all">All time</option>',
-    ...fys.map(fy => `<option value="${fy}" ${fy===cfY?'selected':''}>${fyLabel(fy)}</option>`)
-  ].join('');
+function doLogout(){
+  currentUser=null;
+  hide('s-app');
+  show('s-login');
+  $('login-user').value='';
+  $('login-pass').value='';
 }
 
-// ══ FORMAT ══
-function fmt(n) { if (!n && n!==0) return '—'; return '$'+Number(n).toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function totalGrossOf(p) {
-  const r = p.rates||{};
-  const f = ['mf','sat','sun','ph'].reduce((s,k)=>s+(parseFloat(r[k+'_amt'])||0),0);
-  return f>0 ? f : (parseFloat(p.gross)||0);
-}
-function totalHoursOf(p) { const r=p.rates||{}; return ['mf','sat','sun','ph'].reduce((s,k)=>s+(parseFloat(r[k+'_hrs'])||0),0); }
-
-// ══ DUPLICATE CHECK ══
-// Returns matching payslip if the period string or date closely matches an existing record
-function findDuplicate(period, date) {
-  const existing = loadPayslips();
-  const normPeriod = (period||'').trim().toLowerCase();
-  return existing.find(p => {
-    if (normPeriod && p.period && p.period.trim().toLowerCase() === normPeriod) return true;
-    if (date && p.date && p.date === date) return true;
-    return false;
-  }) || null;
-}
-
-// ══ DASHBOARD ══
-function renderDashboard() {
-  const all = loadPayslips();
-  const fyVal = document.getElementById('fy-select') ? document.getElementById('fy-select').value : 'all';
-  const fyNum = fyVal === 'all' ? null : parseInt(fyVal);
-  const list = fyNum ? all.filter(p => inFY(p.date, fyNum)) : all;
-  const totalGross = all.reduce((s,p)=>s+totalGrossOf(p),0);
-  const fyGross = list.reduce((s,p)=>s+totalGrossOf(p),0);
-  const fyNet = list.reduce((s,p)=>s+(parseFloat(p.net)||0),0);
-  const fyTax = list.reduce((s,p)=>s+(parseFloat(p.tax)||0),0);
-  const fyHrs = list.reduce((s,p)=>s+totalHoursOf(p),0);
-  document.getElementById('stats-grid').innerHTML = `
-    <div class="stat-card"><div class="stat-label">All-time gross</div><div class="stat-value" style="font-size:22px;">${fmt(totalGross)}</div><div class="stat-sub">${all.length} payslip${all.length!==1?'s':''} total</div></div>
-    <div class="stat-card"><div class="stat-label">${fyNum?fyLabel(fyNum):'All time'} gross</div><div class="stat-value" style="font-size:22px;">${fmt(fyGross)}</div><div class="stat-sub">before tax</div></div>
-    <div class="stat-card"><div class="stat-label">${fyNum?'FY'+fyNum:'All time'} net</div><div class="stat-value" style="font-size:22px;">${fmt(fyNet)}</div><div class="stat-sub">take-home</div></div>
-    <div class="stat-card"><div class="stat-label">${fyNum?'FY'+fyNum:'All time'} tax</div><div class="stat-value" style="font-size:22px;">${fmt(fyTax)}</div><div class="stat-sub">withheld</div></div>
-    <div class="stat-card"><div class="stat-label">${fyNum?'FY'+fyNum:'All time'} hours</div><div class="stat-value" style="font-size:22px;">${fyHrs.toFixed(1)}</div><div class="stat-sub">hours worked</div></div>`;
-  const types = [{key:'mf',label:'Mon–Fri',cls:'type-mf'},{key:'sat',label:'Saturday',cls:'type-sat'},{key:'sun',label:'Sunday',cls:'type-sun'},{key:'ph',label:'Public holiday',cls:'type-ph'}];
-  document.getElementById('hours-grid').innerHTML = types.map(t => {
-    const hrs = list.reduce((s,p)=>s+(parseFloat((p.rates||{})[t.key+'_hrs'])||0),0);
-    const amt = list.reduce((s,p)=>s+(parseFloat((p.rates||{})[t.key+'_amt'])||0),0);
-    const avg = hrs>0 ? amt/hrs : 0;
-    return `<div class="hours-card"><div class="hours-type ${t.cls}">${t.label}</div><div class="hours-val">${hrs.toFixed(1)}<span style="font-size:14px;color:var(--text2);font-family:'DM Sans',sans-serif;"> h</span></div><div class="hours-rate">${avg>0?'Avg '+fmt(avg)+'/hr':'No data'}</div><div class="hours-rate" style="color:var(--accent);">${fmt(amt)}</div></div>`;
-  }).join('');
-  const container = document.getElementById('payslip-list');
-  if (list.length===0) { container.innerHTML=`<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><p style="font-weight:500;margin-bottom:4px;">No payslips${fyNum?' in '+fyLabel(fyNum):' yet'}</p><p style="font-size:13px;">Go to <strong>Add payslips</strong> to get started.</p></div>`; return; }
-  const sorted = [...list].sort((a,b)=>new Date(b.date||b.savedAt)-new Date(a.date||a.savedAt));
-  container.innerHTML = sorted.map(p => {
-    const r=p.rates||{}, hrs=totalHoursOf(p);
-    const parts=['mf','sat','sun','ph'].filter(k=>parseFloat(r[k+'_hrs'])>0).map(k=>`${k.toUpperCase()} ${r[k+'_hrs']}h`).join(' · ');
-    return `<div class="payslip-row">
-      <div class="payslip-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
-      <div class="payslip-info">
-        <div class="payslip-period">${p.period||'Unnamed period'}</div>
-        <div class="payslip-employer">${p.employer||''}</div>
-        ${parts?`<div class="payslip-meta">${parts} · ${hrs.toFixed(1)}h total</div>`:''}
-        ${p.pdf?`<button class="btn-view-pdf" onclick="openPdf('${p.id}')">View PDF</button>`:''}
-      </div>
-      <div class="payslip-amounts"><div class="payslip-gross">${fmt(totalGrossOf(p))}</div><div class="payslip-net">Net ${fmt(p.net)}</div></div>
-      <div class="payslip-date">${p.date||''}</div>
-      <button class="btn-delete" title="Delete" onclick="deletePayslip('${p.id}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
-    </div>`;
-  }).join('');
-}
-function deletePayslip(id) {
-  if (!confirm('Delete this payslip? This cannot be undone.')) return;
-  savePayslips(loadPayslips().filter(p=>p.id!==id));
-  populateFySelect(); renderDashboard();
-}
-
-// ══ CHARTS ══
-let chartRates=null, chartPaid=null;
-function renderCharts() {
-  const list = loadPayslips().filter(p=>p.date).sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const labels = list.map(p=>p.period||p.date);
-  const getRate = (p,k) => { const r=p.rates||{}, h=parseFloat(r[k+'_hrs'])||0, a=parseFloat(r[k+'_amt'])||0; return h>0?parseFloat((a/h).toFixed(2)):null; };
-  const baseOpts = () => ({ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom',labels:{font:{family:'DM Sans',size:12},color:'#6B6760',boxWidth:12,padding:16}},tooltip:{callbacks:{label:ctx=>` $${ctx.parsed.y!=null?ctx.parsed.y.toFixed(2):'—'}`}}}, scales:{x:{ticks:{font:{family:'DM Mono',size:11},color:'#9C9890'},grid:{color:'rgba(0,0,0,0.05)'}},y:{ticks:{font:{family:'DM Mono',size:11},color:'#9C9890',callback:v=>'$'+v},grid:{color:'rgba(0,0,0,0.05)'}}} });
-  if (chartRates) chartRates.destroy();
-  if (chartPaid) chartPaid.destroy();
-  if (list.length===0) {
-    ['chart-rates','chart-paid'].forEach(id=>{ const c=document.getElementById(id).getContext('2d'); c.clearRect(0,0,1000,400); c.fillStyle='#9C9890'; c.font='14px DM Sans'; c.textAlign='center'; c.fillText('No data yet — add payslips to see charts',400,120); });
-    return;
+// ══ API KEY ══
+function getApiKey(){
+  var key=localStorage.getItem('gemini_key');
+  if(!key){
+    key=prompt('Enter your Google Gemini API key:\n(Get one free at aistudio.google.com → Get API key)\nIt will be saved in your browser.');
+    if(key && key.trim()) localStorage.setItem('gemini_key', key.trim());
   }
-  chartRates = new Chart(document.getElementById('chart-rates').getContext('2d'),{type:'line',data:{labels,datasets:[{label:'Mon–Fri',data:list.map(p=>getRate(p,'mf')),borderColor:'#2A5C45',backgroundColor:'rgba(42,92,69,0.08)',tension:0.3,spanGaps:true,pointRadius:5},{label:'Saturday',data:list.map(p=>getRate(p,'sat')),borderColor:'#185FA5',backgroundColor:'rgba(24,95,165,0.08)',tension:0.3,spanGaps:true,pointRadius:5},{label:'Sunday',data:list.map(p=>getRate(p,'sun')),borderColor:'#7A5A1A',backgroundColor:'rgba(122,90,26,0.08)',tension:0.3,spanGaps:true,pointRadius:5},{label:'Public holiday',data:list.map(p=>getRate(p,'ph')),borderColor:'#8B2E2E',backgroundColor:'rgba(139,46,46,0.08)',tension:0.3,spanGaps:true,pointRadius:5}]},options:baseOpts()});
-  chartPaid = new Chart(document.getElementById('chart-paid').getContext('2d'),{type:'line',data:{labels,datasets:[{label:'Gross pay',data:list.map(p=>parseFloat(totalGrossOf(p).toFixed(2))),borderColor:'#2A5C45',backgroundColor:'rgba(42,92,69,0.12)',fill:true,tension:0.3,pointRadius:5}]},options:{...baseOpts(),plugins:{...baseOpts().plugins,legend:{display:false}}}});
+  return key ? key.trim() : null;
 }
 
-// ══ QUEUE SYSTEM ══
-// queue[]: { id, fileName, dataUrl, status: 'extracting'|'review'|'duplicate'|'saved'|'error', data:{}, dupMatch, errorMsg }
-let queue = [];
-
-const dropzone = document.getElementById('dropzone');
-const fileInput = document.getElementById('file-input');
-
-dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
-dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
-dropzone.addEventListener('drop', e => {
-  e.preventDefault(); dropzone.classList.remove('drag-over');
-  const files = [...e.dataTransfer.files].filter(f => f.type==='application/pdf');
-  if (!files.length) { alert('Please drop PDF files only.'); return; }
-  addFilesToQueue(files);
-});
-fileInput.addEventListener('change', () => {
-  if (fileInput.files.length) addFilesToQueue([...fileInput.files]);
-  fileInput.value = '';
-});
-
-function addFilesToQueue(files) {
-  files.forEach(f => {
-    if (f.size > 20*1024*1024) { alert(`${f.name} is too large (max 20 MB) and was skipped.`); return; }
-    const id = 'q_' + Date.now() + '_' + Math.random().toString(36).slice(2);
-    const item = { id, fileName: f.name, dataUrl: null, status: 'extracting', data: {}, dupMatch: null, errorMsg: '' };
-    queue.push(item);
-    renderQueue();
-    const reader = new FileReader();
-    reader.onload = e => { item.dataUrl = e.target.result; extractItem(item); };
-    reader.readAsDataURL(f);
-  });
-}
-
-function renderQueue() {
-  const sec = document.getElementById('queue-section');
-  const ql  = document.getElementById('queue-list');
-  const bi  = document.getElementById('batch-info');
-  if (!queue.length) { sec.style.display='none'; return; }
-  sec.style.display = 'block';
-  const ready = queue.filter(i=>i.status==='review').length;
-  const done  = queue.filter(i=>i.status==='saved').length;
-  bi.textContent = `${queue.length} file${queue.length!==1?'s':''} · ${ready} ready to save · ${done} saved`;
-  ql.innerHTML = '';
-  queue.forEach(item => {
-    const el = document.createElement('div');
-    el.className = 'queue-card';
-    el.id = 'qcard_' + item.id;
-    el.innerHTML = buildQueueCard(item);
-    ql.appendChild(el);
-  });
-}
-
-function buildQueueCard(item) {
-  const statusLabels = { extracting:'Reading PDF…', review:'Ready to review', duplicate:'Possible duplicate', saved:'Saved', error:'Error' };
-  const statusClass  = { extracting:'status-extracting', review:'status-review', duplicate:'status-duplicate', saved:'status-saved', error:'status-error' };
-  let body = '';
-  if (item.status === 'extracting') {
-    body = `<div class="queue-body"><div class="queue-spinner"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Extracting data with AI — this usually takes a few seconds…</div></div>`;
-  } else if (item.status === 'saved') {
-    body = `<div class="queue-body"><div class="saved-banner"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Saved successfully as <strong>${item.data.period||'payslip'}</strong></div></div>`;
-  } else if (item.status === 'error') {
-    body = `<div class="queue-body"><div class="error-banner">⚠ ${item.errorMsg||'Extraction failed'} — you can still fill in the fields manually below.</div>${miniForm(item)}</div>`;
-  } else if (item.status === 'review' || item.status === 'duplicate') {
-    const dupWarn = item.status==='duplicate' ? `
-      <div class="dup-warn">
-        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        <span>A payslip for <strong>${item.dupMatch?.period||item.data.period||'this period'}</strong> already exists (pay date: ${item.dupMatch?.date||'unknown'}). You can still save it as a separate entry, or remove this file.</span>
-      </div>` : '';
-    body = `<div class="queue-body">${dupWarn}${miniForm(item)}</div>`;
-  }
-  return `
-    <div class="queue-header">
-      <svg style="width:16px;height:16px;stroke:var(--text3);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      <span class="queue-filename">${item.fileName}</span>
-      <span class="queue-status ${statusClass[item.status]}">${statusLabels[item.status]}</span>
-      <button class="queue-remove" onclick="removeFromQueue('${item.id}')" title="Remove"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>${body}`;
-}
-
-function miniForm(item) {
-  const d = item.data;
-  const fi = (key, placeholder, type='text') =>
-    `<input class="mini-input" type="${type}" id="${item.id}_${key}" placeholder="${placeholder}" value="${d[key]||''}" oninput="syncField('${item.id}','${key}',this.value)" step="${type==='number'?'0.01':undefined}" min="${type==='number'?'0':undefined}" />`;
-  const calcTrigger = `oninput="syncCalc('${item.id}','mf')"`;
-  const mkRate = (k, label, color) => `
-    <div class="rate-mini-label" style="color:${color};">${label}</div>
-    <div class="mini-field"><input class="mini-input" type="number" id="${item.id}_${k}_hrs" placeholder="0" step="0.5" min="0" value="${d[k+'_hrs']||''}" oninput="syncCalc('${item.id}','${k}')" /></div>
-    <div class="mini-field"><div class="dollar-mini"><span class="ds">$</span><input class="mini-input" type="number" id="${item.id}_${k}_rate" placeholder="0.00" step="0.01" min="0" value="${d[k+'_rate']||''}" oninput="syncCalc('${item.id}','${k}')" /></div></div>
-    <div class="mini-field"><div class="dollar-mini"><span class="ds">$</span><input class="mini-input" type="number" id="${item.id}_${k}_amt" placeholder="0.00" step="0.01" min="0" value="${d[k+'_amt']||''}" oninput="syncField('${item.id}','${k}_amt',this.value);updateMiniTotals('${item.id}')" /></div></div>`;
-  const actions = item.status==='duplicate'
-    ? `<button class="btn-sm btn-sm-warn" onclick="saveQueueItem('${item.id}')">Save anyway</button><button class="btn-sm" onclick="removeFromQueue('${item.id}')">Remove</button>`
-    : `<button class="btn-sm btn-sm-primary" onclick="saveQueueItem('${item.id}')">Save payslip</button><button class="btn-sm" onclick="removeFromQueue('${item.id}')">Remove</button>`;
-  return `
-    <div class="mini-grid" style="margin-top:4px;">
-      <div class="mini-field"><div class="mini-label">Pay period</div>${fi('period','e.g. April 2025')}</div>
-      <div class="mini-field"><div class="mini-label">Employer</div>${fi('employer','e.g. Acme Pty Ltd')}</div>
-      <div class="mini-field"><div class="mini-label">Pay date</div>${fi('date','','date')}</div>
-      <div class="mini-field"><div class="mini-label">Tax withheld ($)</div><div class="dollar-mini"><span class="ds">$</span>${fi('tax','0.00','number')}</div></div>
-    </div>
-    <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Hours &amp; rates</div>
-    <div style="display:grid;grid-template-columns:72px 1fr 1fr 1fr;gap:8px;margin-bottom:6px;">
-      <div></div>
-      <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;">Hours</div>
-      <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;">Rate ($/hr)</div>
-      <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;">Amount ($)</div>
-    </div>
-    <div style="display:grid;grid-template-columns:72px 1fr 1fr 1fr;gap:8px 8px;">
-      ${mkRate('mf','M–F','#2A5C45')}
-      ${mkRate('sat','SAT','#185FA5')}
-      ${mkRate('sun','SUN','#7A5A1A')}
-      ${mkRate('ph','PH','#8B2E2E')}
-    </div>
-    <hr class="mini-divider"/>
-    <div class="mini-totals">
-      <span>Total hours: <strong id="${item.id}_total_hrs">${calcTotalHrs(item)}</strong></span>
-      <span>Gross: <strong id="${item.id}_total_amt">${calcTotalAmt(item)}</strong></span>
-    </div>
-    <div class="mini-field" style="max-width:200px;margin-bottom:12px;">
-      <div class="mini-label">Net (take-home) ($)</div>
-      <div class="dollar-mini"><span class="ds">$</span>${fi('net','0.00','number')}</div>
-    </div>
-    <div class="queue-actions">${actions}</div>`;
-}
-
-function calcTotalHrs(item) {
-  return ['mf','sat','sun','ph'].reduce((s,k)=>s+(parseFloat(item.data[k+'_hrs'])||0),0).toFixed(1);
-}
-function calcTotalAmt(item) {
-  const t = ['mf','sat','sun','ph'].reduce((s,k)=>s+(parseFloat(item.data[k+'_amt'])||0),0);
-  return '$'+t.toFixed(2);
-}
-
-function syncField(id, key, value) {
-  const item = queue.find(i=>i.id===id); if (!item) return;
-  item.data[key] = value;
-  // Re-check duplicate on period/date change
-  if (key==='period'||key==='date') recheckDuplicate(item);
-  updateBatchInfo();
-}
-function syncCalc(id, type) {
-  const item = queue.find(i=>i.id===id); if (!item) return;
-  const hrs = parseFloat(document.getElementById(id+'_'+type+'_hrs')?.value)||0;
-  const rate = parseFloat(document.getElementById(id+'_'+type+'_rate')?.value)||0;
-  item.data[type+'_hrs'] = hrs||'';
-  item.data[type+'_rate'] = rate||'';
-  if (hrs>0 && rate>0) {
-    const amt = (hrs*rate).toFixed(2);
-    item.data[type+'_amt'] = amt;
-    const amtEl = document.getElementById(id+'_'+type+'_amt');
-    if (amtEl) amtEl.value = amt;
-  }
-  updateMiniTotals(id);
-}
-function updateMiniTotals(id) {
-  const item = queue.find(i=>i.id===id); if (!item) return;
-  const hEl = document.getElementById(id+'_total_hrs');
-  const aEl = document.getElementById(id+'_total_amt');
-  if (hEl) hEl.textContent = calcTotalHrs(item);
-  if (aEl) aEl.textContent = calcTotalAmt(item);
-}
-function recheckDuplicate(item) {
-  if (item.status==='saved'||item.status==='extracting') return;
-  const dup = findDuplicate(item.data.period, item.data.date);
-  item.dupMatch = dup||null;
-  item.status = dup ? 'duplicate' : 'review';
-}
-function updateBatchInfo() {
-  const bi = document.getElementById('batch-info');
-  if (!bi) return;
-  const ready = queue.filter(i=>i.status==='review').length;
-  const done  = queue.filter(i=>i.status==='saved').length;
-  bi.textContent = `${queue.length} file${queue.length!==1?'s':''} · ${ready} ready to save · ${done} saved`;
-}
-
-// ══ EXTRACTION ══
-function extractJson(text) {
-  if (!text) return null;
-  // Strip markdown fences
-  let s = text.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
-  // Try direct parse
-  try { return JSON.parse(s); } catch(_) {}
-  // Extract first { ... } block, greedy
-  const m = s.match(/\{[\s\S]*\}/);
-  if (m) { try { return JSON.parse(m[0]); } catch(_) {} }
-  // Last resort: find opening brace and try progressively shorter substrings
-  const start = s.indexOf('{');
-  const end = s.lastIndexOf('}');
-  if (start !== -1 && end !== -1 && end > start) {
-    try { return JSON.parse(s.slice(start, end + 1)); } catch(_) {}
-  }
-  console.warn('extractJson failed on:', s.slice(0, 500));
-  return null;
-}
-
-async function callGemini(base64Data, apiKey) {
-  const promptText = `Extract all payslip fields from this PDF. Return a single raw JSON object with no markdown, no code fences, no explanation — just the JSON.
-Use these exact keys: period (e.g. "April 2025"), employer, date (YYYY-MM-DD), tax (tax withheld as number string), net (take-home pay as number string), mf_hrs (Mon-Fri hours), mf_rate (Mon-Fri hourly rate), mf_amt (Mon-Fri total amount), sat_hrs, sat_rate, sat_amt, sun_hrs, sun_rate, sun_amt, ph_hrs (public holiday hours), ph_rate, ph_amt.
-Use empty string for missing text fields and "0" for missing number fields. No dollar signs or commas in numbers.`;
-
-  const response = await fetch(
-    \`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=\${apiKey}\`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [
-          { inline_data: { mime_type: 'application/pdf', data: base64Data } },
-          { text: promptText }
-        ]}],
-        generationConfig: {
-          temperature: 0,
-          maxOutputTokens: 1200,
-          responseMimeType: 'application/json'
-        }
-      })
-    }
-  );
-
-  if (!response.ok) { const t = await response.text(); throw new Error(\`API \${response.status}: \${t.slice(0,300)}\`); }
-  const resp = await response.json();
-  if (resp.error) throw new Error(resp.error.message || 'Gemini API error');
-  return resp.candidates?.[0]?.content?.parts?.[0]?.text || '';
-}
-
-function changeApiKey() {
-  const key = prompt('Enter your Google Gemini API key:\n(Get one free at aistudio.google.com → Get API key)');
-  if (key && key.trim()) {
+function changeApiKey(){
+  var key=prompt('Enter your Google Gemini API key:');
+  if(key && key.trim()){
     localStorage.setItem('gemini_key', key.trim());
     alert('API key saved!');
   }
 }
 
-function getApiKey() {
-  let key = localStorage.getItem('gemini_key');
-  if (!key) {
-    key = prompt(
-      'Enter your Google Gemini API key to enable automatic PDF extraction.\n\n' +
-      'Get a free key at aistudio.google.com → Get API key.\n' +
-      'It will be saved in this browser so you only need to enter it once.'
-    );
-    if (key && key.trim()) localStorage.setItem('gemini_key', key.trim());
-  }
-  return key ? key.trim() : null;
+// ══ TABS ══
+function switchTab(name){
+  document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active-tab'); });
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  $('tab-'+name).classList.add('active-tab');
+  document.querySelector('[data-tab="'+name+'"]').classList.add('active');
+  if(name==='analytics') setTimeout(renderCharts, 50);
 }
 
-async function extractItem(item) {
-  try {
-    const base64Data = item.dataUrl.split(',')[1];
-    if (!base64Data) throw new Error('Could not read PDF.');
+// ══ DASHBOARD ══
+function renderDashboard(){
+  var all=loadPayslips();
+  var fyVal=$('fy-select') ? $('fy-select').value : 'all';
+  var fyNum=fyVal==='all'?null:parseInt(fyVal);
+  var list=fyNum ? all.filter(function(p){ return getFY(p.date)===fyNum; }) : all;
 
-    const apiKey = getApiKey();
-    if (!apiKey) {
-      item.status = 'error';
-      item.errorMsg = 'No API key — fill in fields manually, or reload the page and enter your key when prompted.';
-      if (!item.data.period) item.data.period = item.fileName.replace(/\.pdf$/i,'').replace(/[_\-]/g,' ');
-      renderQueue();
-      return;
+  var totalGross=all.reduce(function(s,p){ return s+totalGrossOf(p); },0);
+  var fyGross=list.reduce(function(s,p){ return s+totalGrossOf(p); },0);
+  var fyNet=list.reduce(function(s,p){ return s+(parseFloat(p.net)||0); },0);
+  var fyTax=list.reduce(function(s,p){ return s+(parseFloat(p.tax)||0); },0);
+  var fyHrs=list.reduce(function(s,p){ return s+totalHoursOf(p); },0);
+
+  $('stats-grid').innerHTML=
+    statCard('All-time gross', fmt(totalGross), all.length+' payslip'+(all.length!==1?'s':'')+' total')+
+    statCard((fyNum?fyLabel(fyNum):'All time')+' gross', fmt(fyGross), 'before tax')+
+    statCard((fyNum?'FY'+fyNum:'All time')+' net', fmt(fyNet), 'take-home')+
+    statCard((fyNum?'FY'+fyNum:'All time')+' tax', fmt(fyTax), 'withheld')+
+    statCard((fyNum?'FY'+fyNum:'All time')+' hours', fyHrs.toFixed(1), 'hours worked');
+
+  var types=[{k:'mf',l:'Mon–Fri',c:'type-mf'},{k:'sat',l:'Saturday',c:'type-sat'},{k:'sun',l:'Sunday',c:'type-sun'},{k:'ph',l:'Public holiday',c:'type-ph'}];
+  $('hours-grid').innerHTML=types.map(function(t){
+    var hrs=list.reduce(function(s,p){ return s+(parseFloat((p.rates||{})[t.k+'_hrs'])||0); },0);
+    var amt=list.reduce(function(s,p){ return s+(parseFloat((p.rates||{})[t.k+'_amt'])||0); },0);
+    var avg=hrs>0?amt/hrs:0;
+    return '<div class="hours-card"><div class="hours-type '+t.c+'">'+t.l+'</div><div class="hours-val">'+hrs.toFixed(1)+'<span style="font-size:14px;color:var(--text2);"> h</span></div><div class="hours-rate">'+(avg>0?'Avg '+fmt(avg)+'/hr':'No data')+'</div><div class="hours-rate" style="color:var(--accent);">'+fmt(amt)+'</div></div>';
+  }).join('');
+
+  var container=$('payslip-list');
+  if(!list.length){ container.innerHTML='<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><p style="font-weight:500;margin-bottom:4px;">No payslips yet</p><p style="font-size:13px;">Go to <strong>Add payslips</strong> to get started.</p></div>'; return; }
+  var sorted=[].concat(list).sort(function(a,b){ return new Date(b.date||b.savedAt)-new Date(a.date||a.savedAt); });
+  container.innerHTML=sorted.map(function(p){
+    var r=p.rates||{}, hrs=totalHoursOf(p);
+    var parts=['mf','sat','sun','ph'].filter(function(k){ return parseFloat(r[k+'_hrs'])>0; }).map(function(k){ return k.toUpperCase()+' '+r[k+'_hrs']+'h'; }).join(' · ');
+    return '<div class="payslip-row">'+
+      '<div class="payslip-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>'+
+      '<div class="payslip-info"><div class="payslip-period">'+(p.period||'Unnamed')+'</div><div class="payslip-employer">'+(p.employer||'')+'</div>'+(parts?'<div class="payslip-meta">'+parts+' · '+hrs.toFixed(1)+'h total</div>':'')+
+      (p.pdf?'<button class="btn-view-pdf" data-pid="'+p.id+'">View PDF</button>':'')+
+      '</div>'+
+      '<div class="payslip-amounts"><div class="payslip-gross">'+fmt(totalGrossOf(p))+'</div><div class="payslip-net">Net '+fmt(p.net)+'</div></div>'+
+      '<div class="payslip-date">'+(p.date||'')+'</div>'+
+      '<button class="btn-del" data-del="'+p.id+'"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>'+
+      '</div>';
+  }).join('');
+
+  // Attach delete and pdf listeners
+  container.querySelectorAll('[data-del]').forEach(function(btn){
+    btn.addEventListener('click', function(){ deletePayslip(this.dataset.del); });
+  });
+  container.querySelectorAll('[data-pid]').forEach(function(btn){
+    btn.addEventListener('click', function(){ openPdf(this.dataset.pid); });
+  });
+}
+
+function statCard(label, value, sub){
+  return '<div class="stat-card"><div class="stat-label">'+label+'</div><div class="stat-value" style="font-size:22px;">'+value+'</div><div class="stat-sub">'+sub+'</div></div>';
+}
+
+function deletePayslip(id){
+  if(!confirm('Delete this payslip? This cannot be undone.')) return;
+  savePayslips(loadPayslips().filter(function(p){ return p.id!==id; }));
+  populateFySelect(); renderDashboard();
+}
+
+// ══ CHARTS ══
+function renderCharts(){
+  var list=loadPayslips().filter(function(p){ return !!p.date; }).sort(function(a,b){ return new Date(a.date)-new Date(b.date); });
+  var labels=list.map(function(p){ return p.period||p.date; });
+  function getRate(p,k){ var r=p.rates||{}; var h=parseFloat(r[k+'_hrs'])||0; var a=parseFloat(r[k+'_amt'])||0; return h>0?parseFloat((a/h).toFixed(2)):null; }
+  var baseOpts={ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ font:{family:'DM Sans',size:12}, color:'#6B6760', boxWidth:12, padding:16 } }, tooltip:{ callbacks:{ label:function(ctx){ return ' $'+(ctx.parsed.y!=null?ctx.parsed.y.toFixed(2):'—'); } } } }, scales:{ x:{ ticks:{ font:{family:'DM Mono',size:11}, color:'#9C9890' }, grid:{ color:'rgba(0,0,0,0.05)' } }, y:{ ticks:{ font:{family:'DM Mono',size:11}, color:'#9C9890', callback:function(v){ return '$'+v; } }, grid:{ color:'rgba(0,0,0,0.05)' } } } };
+  if(chartRates) chartRates.destroy();
+  if(chartPaid) chartPaid.destroy();
+  if(!list.length){
+    ['chart-rates','chart-paid'].forEach(function(id){ var c=$(id).getContext('2d'); c.clearRect(0,0,1000,400); c.fillStyle='#9C9890'; c.font='14px DM Sans'; c.textAlign='center'; c.fillText('No data yet — add payslips to see charts',400,120); });
+    return;
+  }
+  chartRates=new Chart($('chart-rates').getContext('2d'),{ type:'line', data:{ labels:labels, datasets:[
+    { label:'Mon–Fri', data:list.map(function(p){ return getRate(p,'mf'); }), borderColor:'#2A5C45', backgroundColor:'rgba(42,92,69,0.08)', tension:0.3, spanGaps:true, pointRadius:5 },
+    { label:'Saturday', data:list.map(function(p){ return getRate(p,'sat'); }), borderColor:'#185FA5', backgroundColor:'rgba(24,95,165,0.08)', tension:0.3, spanGaps:true, pointRadius:5 },
+    { label:'Sunday', data:list.map(function(p){ return getRate(p,'sun'); }), borderColor:'#7A5A1A', backgroundColor:'rgba(122,90,26,0.08)', tension:0.3, spanGaps:true, pointRadius:5 },
+    { label:'Public holiday', data:list.map(function(p){ return getRate(p,'ph'); }), borderColor:'#8B2E2E', backgroundColor:'rgba(139,46,46,0.08)', tension:0.3, spanGaps:true, pointRadius:5 }
+  ]}, options:baseOpts });
+  chartPaid=new Chart($('chart-paid').getContext('2d'),{ type:'line', data:{ labels:labels, datasets:[{ label:'Gross pay', data:list.map(function(p){ return parseFloat(totalGrossOf(p).toFixed(2)); }), borderColor:'#2A5C45', backgroundColor:'rgba(42,92,69,0.12)', fill:true, tension:0.3, pointRadius:5 }]}, options:Object.assign({},baseOpts,{ plugins:Object.assign({},baseOpts.plugins,{ legend:{ display:false } }) }) });
+}
+
+// ══ DUPLICATE CHECK ══
+function findDuplicate(period, date){
+  return loadPayslips().find(function(p){
+    if(period && p.period && p.period.trim().toLowerCase()===period.trim().toLowerCase()) return true;
+    if(date && p.date && p.date===date) return true;
+    return false;
+  }) || null;
+}
+
+// ══ QUEUE ══
+function addFilesToQueue(files){
+  Array.from(files).forEach(function(f){
+    if(f.type!=='application/pdf'){ alert(f.name+' is not a PDF and was skipped.'); return; }
+    if(f.size>20*1024*1024){ alert(f.name+' is too large (max 20 MB) and was skipped.'); return; }
+    var id='q_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    var item={ id:id, fileName:f.name, dataUrl:null, status:'extracting', data:{}, dupMatch:null, errorMsg:'' };
+    queue.push(item);
+    renderQueue();
+    var reader=new FileReader();
+    reader.onload=function(e){ item.dataUrl=e.target.result; extractItem(item); };
+    reader.readAsDataURL(f);
+  });
+}
+
+function renderQueue(){
+  var sec=$('queue-section');
+  var ql=$('queue-list');
+  if(!queue.length){ sec.style.display='none'; return; }
+  sec.style.display='block';
+  var ready=queue.filter(function(i){ return i.status==='review'; }).length;
+  var done=queue.filter(function(i){ return i.status==='saved'; }).length;
+  $('batch-info').textContent=queue.length+' file'+(queue.length!==1?'s':'')+' · '+ready+' ready to save · '+done+' saved';
+  ql.innerHTML='';
+  queue.forEach(function(item){
+    var el=document.createElement('div');
+    el.className='queue-card';
+    el.id='qcard_'+item.id;
+    el.innerHTML=buildCard(item);
+    ql.appendChild(el);
+    // Attach listeners for inputs
+    attachCardListeners(item);
+  });
+}
+
+function buildCard(item){
+  var labels={ extracting:'Reading PDF…', review:'Ready to review', duplicate:'Possible duplicate', saved:'Saved', error:'Error' };
+  var cls={ extracting:'s-extracting', review:'s-review', duplicate:'s-duplicate', saved:'s-saved', error:'s-error' };
+  var header='<div class="queue-header">'+
+    '<svg style="width:16px;height:16px;stroke:var(--text3);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'+
+    '<span class="queue-filename">'+item.fileName+'</span>'+
+    '<span class="q-status '+cls[item.status]+'">'+labels[item.status]+'</span>'+
+    '<button class="queue-remove" data-remove="'+item.id+'"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'+
+    '</div>';
+  var body='';
+  if(item.status==='extracting'){
+    body='<div class="queue-body"><div class="q-spinner"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Extracting data — this takes a few seconds…</div></div>';
+  } else if(item.status==='saved'){
+    body='<div class="queue-body"><div class="saved-msg"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Saved as <strong>'+(item.data.period||'payslip')+'</strong></div></div>';
+  } else if(item.status==='error'){
+    body='<div class="queue-body"><div class="error-msg">⚠ '+(item.errorMsg||'Extraction failed')+' — fill in fields manually.</div>'+miniForm(item)+'</div>';
+  } else {
+    var dupWarn='';
+    if(item.status==='duplicate'){
+      dupWarn='<div class="dup-warn"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+
+        '<span>A payslip for <strong>'+(item.dupMatch&&item.dupMatch.period||item.data.period||'this period')+'</strong> already exists. You can still save it or remove it.</span></div>';
     }
+    body='<div class="queue-body">'+dupWarn+miniForm(item)+'</div>';
+  }
+  return header+body;
+}
 
-    const raw = await callGemini(base64Data, apiKey);
-    const parsed = extractJson(raw);
-    if (!parsed) throw new Error('No valid JSON in response.');
-    // Map parsed into item.data
-    ['period','employer','date','tax','net','mf_hrs','mf_rate','mf_amt','sat_hrs','sat_rate','sat_amt','sun_hrs','sun_rate','sun_amt','ph_hrs','ph_rate','ph_amt'].forEach(k=>{
-      const v=(parsed[k]||'').toString().trim(); if(v&&v!=='0') item.data[k]=v;
+function miniForm(item){
+  var d=item.data;
+  function inp(key, ph, type){ type=type||'text'; return '<input class="mini-input" type="'+type+'" id="'+item.id+'_'+key+'" placeholder="'+ph+'" value="'+(d[key]||'')+'" data-id="'+item.id+'" data-key="'+key+'"'+(type==='number'?' step="0.01" min="0"':'')+'>'; }
+  function rateRow(k, label, color){
+    return '<div class="rate-lbl" style="color:'+color+';">'+label+'</div>'+
+      '<div class="mini-field"><input class="mini-input rateInp" type="number" id="'+item.id+'_'+k+'_hrs" placeholder="0" step="0.5" min="0" value="'+(d[k+'_hrs']||'')+'" data-id="'+item.id+'" data-type="'+k+'" data-f="hrs"></div>'+
+      '<div class="mini-field"><div class="dollar-mini"><span class="ds">$</span><input class="mini-input rateInp" type="number" id="'+item.id+'_'+k+'_rate" placeholder="0.00" step="0.01" min="0" value="'+(d[k+'_rate']||'')+'" data-id="'+item.id+'" data-type="'+k+'" data-f="rate"></div></div>'+
+      '<div class="mini-field"><div class="dollar-mini"><span class="ds">$</span><input class="mini-input rateInp" type="number" id="'+item.id+'_'+k+'_amt" placeholder="0.00" step="0.01" min="0" value="'+(d[k+'_amt']||'')+'" data-id="'+item.id+'" data-type="'+k+'" data-f="amt"></div></div>';
+  }
+  var saveBtn=item.status==='duplicate'
+    ? '<button class="btn-sm btn-sm-warn" data-save="'+item.id+'">Save anyway</button>'
+    : '<button class="btn-sm btn-sm-primary" data-save="'+item.id+'">Save payslip</button>';
+  return '<div class="mini-grid">'+
+    '<div class="mini-field"><div class="mini-label">Pay period</div>'+inp('period','e.g. April 2025')+'</div>'+
+    '<div class="mini-field"><div class="mini-label">Employer</div>'+inp('employer','e.g. Acme Pty Ltd')+'</div>'+
+    '<div class="mini-field"><div class="mini-label">Pay date</div>'+inp('date','','date')+'</div>'+
+    '<div class="mini-field"><div class="mini-label">Tax withheld ($)</div><div class="dollar-mini"><span class="ds">$</span>'+inp('tax','0.00','number')+'</div></div>'+
+    '</div>'+
+    '<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Hours &amp; rates</div>'+
+    '<div class="rates-header"><div></div><div class="col-hdr">Hours</div><div class="col-hdr">Rate ($/hr)</div><div class="col-hdr">Amount ($)</div></div>'+
+    '<div class="rates-row">'+rateRow('mf','M–F','#2A5C45')+'</div>'+
+    '<div class="rates-row">'+rateRow('sat','SAT','#185FA5')+'</div>'+
+    '<div class="rates-row">'+rateRow('sun','SUN','#7A5A1A')+'</div>'+
+    '<div class="rates-row">'+rateRow('ph','PH','#8B2E2E')+'</div>'+
+    '<hr class="mini-divider">'+
+    '<div class="mini-totals">Total hours: <strong id="'+item.id+'_tot_hrs">'+calcTotHrs(item)+'</strong>&nbsp;&nbsp; Gross: <strong id="'+item.id+'_tot_amt">'+calcTotAmt(item)+'</strong></div>'+
+    '<div class="mini-field" style="max-width:200px;margin-bottom:12px;"><div class="mini-label">Net (take-home) ($)</div><div class="dollar-mini"><span class="ds">$</span>'+inp('net','0.00','number')+'</div></div>'+
+    '<div class="q-actions">'+saveBtn+'<button class="btn-sm" data-remove="'+item.id+'">Remove</button></div>';
+}
+
+function attachCardListeners(item){
+  var card=document.getElementById('qcard_'+item.id);
+  if(!card) return;
+  // Remove buttons
+  card.querySelectorAll('[data-remove]').forEach(function(btn){
+    btn.addEventListener('click', function(){ removeFromQueue(this.dataset.remove); });
+  });
+  // Save buttons
+  card.querySelectorAll('[data-save]').forEach(function(btn){
+    btn.addEventListener('click', function(){ saveQueueItem(this.dataset.save); });
+  });
+  // Text/date inputs
+  card.querySelectorAll('.mini-input:not(.rateInp)').forEach(function(inp){
+    inp.addEventListener('input', function(){
+      var it=queue.find(function(i){ return i.id===this.dataset.id; }, this);
+      if(it){ it.data[this.dataset.key]=this.value; recheckDup(it); }
     });
-    // Check duplicate
-    const dup = findDuplicate(item.data.period, item.data.date);
-    item.dupMatch = dup||null;
-    item.status = dup ? 'duplicate' : 'review';
-  } catch(err) {
-    console.error('Extraction failed for', item.fileName, err);
-    item.status = 'error';
-    item.errorMsg = err.message;
-    // Fallback: use filename as period hint
-    if (!item.data.period) item.data.period = item.fileName.replace(/\.pdf$/i,'').replace(/[_\-]/g,' ');
+  });
+  // Rate inputs
+  card.querySelectorAll('.rateInp').forEach(function(inp){
+    inp.addEventListener('input', function(){
+      var it=queue.find(function(i){ return i.id===this.dataset.id; }, this);
+      if(!it) return;
+      var k=this.dataset.type, f=this.dataset.f;
+      it.data[k+'_'+f]=this.value;
+      if(f==='hrs'||f==='rate'){
+        var hrs=parseFloat(it.data[k+'_hrs'])||0;
+        var rate=parseFloat(it.data[k+'_rate'])||0;
+        if(hrs>0&&rate>0){
+          it.data[k+'_amt']=(hrs*rate).toFixed(2);
+          var amtEl=document.getElementById(it.id+'_'+k+'_amt');
+          if(amtEl) amtEl.value=it.data[k+'_amt'];
+        }
+      }
+      updateTotals(it);
+    });
+  });
+}
+
+function calcTotHrs(item){ return ['mf','sat','sun','ph'].reduce(function(s,k){ return s+(parseFloat(item.data[k+'_hrs'])||0); },0).toFixed(1); }
+function calcTotAmt(item){ return '$'+['mf','sat','sun','ph'].reduce(function(s,k){ return s+(parseFloat(item.data[k+'_amt'])||0); },0).toFixed(2); }
+function updateTotals(item){
+  var h=document.getElementById(item.id+'_tot_hrs');
+  var a=document.getElementById(item.id+'_tot_amt');
+  if(h) h.textContent=calcTotHrs(item);
+  if(a) a.textContent=calcTotAmt(item);
+}
+function recheckDup(item){
+  if(item.status==='saved'||item.status==='extracting') return;
+  var dup=findDuplicate(item.data.period, item.data.date);
+  item.dupMatch=dup||null;
+  item.status=dup?'duplicate':'review';
+}
+
+// ══ EXTRACTION ══
+function extractJson(text){
+  if(!text) return null;
+  var s=text.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+  try{ return JSON.parse(s); }catch(e){}
+  var m=s.match(/\{[\s\S]*\}/);
+  if(m){ try{ return JSON.parse(m[0]); }catch(e){} }
+  var start=s.indexOf('{'), end=s.lastIndexOf('}');
+  if(start!==-1&&end>start){ try{ return JSON.parse(s.slice(start,end+1)); }catch(e){} }
+  return null;
+}
+
+async function extractItem(item){
+  try{
+    var base64Data=item.dataUrl.split(',')[1];
+    if(!base64Data) throw new Error('Could not read PDF.');
+    var apiKey=getApiKey();
+    if(!apiKey){ item.status='error'; item.errorMsg='No API key provided.'; renderQueue(); return; }
+    var promptText='Extract all payslip fields from this PDF. Return a single raw JSON object — no markdown, no code fences, just JSON.\nKeys required: period (e.g. "April 2025"), employer, date (YYYY-MM-DD), tax (number string), net (number string), mf_hrs, mf_rate, mf_amt, sat_hrs, sat_rate, sat_amt, sun_hrs, sun_rate, sun_amt, ph_hrs, ph_rate, ph_amt.\nUse empty string for missing text, "0" for missing numbers. No $ signs or commas.';
+    var response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key='+apiKey,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        contents:[{parts:[
+          {inline_data:{mime_type:'application/pdf',data:base64Data}},
+          {text:promptText}
+        ]}],
+        generationConfig:{temperature:0,maxOutputTokens:1200,responseMimeType:'application/json'}
+      })
+    });
+    if(!response.ok){ var t=await response.text(); throw new Error('API '+response.status+': '+t.slice(0,300)); }
+    var resp=await response.json();
+    if(resp.error) throw new Error(resp.error.message||'Gemini API error');
+    var raw=(resp.candidates&&resp.candidates[0]&&resp.candidates[0].content&&resp.candidates[0].content.parts&&resp.candidates[0].content.parts[0]&&resp.candidates[0].content.parts[0].text)||'';
+    var parsed=extractJson(raw);
+    if(!parsed) throw new Error('No valid JSON in response.');
+    ['period','employer','date','tax','net','mf_hrs','mf_rate','mf_amt','sat_hrs','sat_rate','sat_amt','sun_hrs','sun_rate','sun_amt','ph_hrs','ph_rate','ph_amt'].forEach(function(k){
+      var v=(parsed[k]||'').toString().trim();
+      if(v&&v!=='0') item.data[k]=v;
+    });
+    var dup=findDuplicate(item.data.period, item.data.date);
+    item.dupMatch=dup||null;
+    item.status=dup?'duplicate':'review';
+  } catch(err){
+    console.error('Extraction failed:', err);
+    item.status='error';
+    item.errorMsg=err.message;
+    if(!item.data.period) item.data.period=item.fileName.replace(/\.pdf$/i,'').replace(/[_\-]/g,' ');
   }
   renderQueue();
 }
 
 // ══ SAVE / REMOVE ══
-function saveQueueItem(id) {
-  const item = queue.find(i=>i.id===id); if (!item) return;
-  // Collect any last edits from DOM
-  ['period','employer','date','tax','net'].forEach(k => {
-    const el = document.getElementById(id+'_'+k); if (el) item.data[k]=el.value;
-  });
-  ['mf','sat','sun','ph'].forEach(k=>{
-    ['hrs','rate','amt'].forEach(f=>{ const el=document.getElementById(`${id}_${k}_${f}`); if(el) item.data[k+'_'+f]=el.value; });
-  });
-  if (!item.data.period?.trim()) { alert('Please enter a pay period before saving.'); return; }
-  const rates={};
-  ['mf','sat','sun','ph'].forEach(k=>{ rates[k+'_hrs']=item.data[k+'_hrs']||'0'; rates[k+'_rate']=item.data[k+'_rate']||'0'; rates[k+'_amt']=item.data[k+'_amt']||'0'; });
-  const entry = { id:Date.now().toString(), period:item.data.period, employer:item.data.employer||'', net:item.data.net||'', date:item.data.date||'', tax:item.data.tax||'', rates, savedAt:new Date().toISOString(), pdf:item.dataUrl||null, fileName:item.fileName };
-  const list = loadPayslips(); list.push(entry); savePayslips(list);
-  item.status = 'saved';
+function saveQueueItem(id){
+  var item=queue.find(function(i){ return i.id===id; });
+  if(!item) return;
+  // Collect latest values from DOM
+  ['period','employer','date','tax','net'].forEach(function(k){ var el=document.getElementById(id+'_'+k); if(el) item.data[k]=el.value; });
+  ['mf','sat','sun','ph'].forEach(function(k){ ['hrs','rate','amt'].forEach(function(f){ var el=document.getElementById(id+'_'+k+'_'+f); if(el) item.data[k+'_'+f]=el.value; }); });
+  if(!(item.data.period||'').trim()){ alert('Please enter a pay period before saving.'); return; }
+  var rates={};
+  ['mf','sat','sun','ph'].forEach(function(k){ rates[k+'_hrs']=item.data[k+'_hrs']||'0'; rates[k+'_rate']=item.data[k+'_rate']||'0'; rates[k+'_amt']=item.data[k+'_amt']||'0'; });
+  var entry={ id:Date.now().toString(), period:item.data.period, employer:item.data.employer||'', net:item.data.net||'', date:item.data.date||'', tax:item.data.tax||'', rates:rates, savedAt:new Date().toISOString(), pdf:item.dataUrl||null, fileName:item.fileName };
+  var list=loadPayslips(); list.push(entry); savePayslips(list);
+  item.status='saved';
   renderQueue();
   populateFySelect(); renderDashboard();
 }
 
-function removeFromQueue(id) {
-  queue = queue.filter(i=>i.id!==id);
-  renderQueue();
+function removeFromQueue(id){ queue=queue.filter(function(i){ return i.id!==id; }); renderQueue(); }
+
+function saveAllReady(){
+  var ready=queue.filter(function(i){ return i.status==='review'; });
+  if(!ready.length){ alert('No payslips are ready to save yet.'); return; }
+  ready.forEach(function(item){ saveQueueItem(item.id); });
 }
 
-function saveAllReady() {
-  const ready = queue.filter(i=>i.status==='review');
-  if (!ready.length) { alert('No payslips are ready to save yet.'); return; }
-  ready.forEach(item=>saveQueueItem(item.id));
-}
-
-function clearQueue() {
-  if (queue.some(i=>i.status!=='saved') && !confirm('Remove all unsaved payslips from the list?')) return;
-  queue = []; renderQueue();
+function clearQueue(){
+  if(queue.some(function(i){ return i.status!=='saved'; })&&!confirm('Remove all unsaved payslips?')) return;
+  queue=[]; renderQueue();
 }
 
 // ══ PDF VIEWER ══
-function openPdf(id) {
-  const p = loadPayslips().find(x=>x.id===id); if (!p||!p.pdf) return;
-  document.getElementById('modal-title').textContent = p.period+(p.employer?' — '+p.employer:'');
-  document.getElementById('pdf-frame').src = p.pdf;
-  document.getElementById('pdf-modal').classList.add('open');
+function openPdf(id){
+  var p=loadPayslips().find(function(x){ return x.id===id; });
+  if(!p||!p.pdf) return;
+  $('modal-title').textContent=(p.period||'Payslip')+(p.employer?' — '+p.employer:'');
+  $('pdf-frame').src=p.pdf;
+  $('pdf-modal').classList.add('open');
 }
-function closePdfModal() { document.getElementById('pdf-modal').classList.remove('open'); document.getElementById('pdf-frame').src=''; }
-document.getElementById('pdf-modal').addEventListener('click', function(e) { if(e.target===this) closePdfModal(); });
+function closePdfModal(){ $('pdf-modal').classList.remove('open'); $('pdf-frame').src=''; }
 
-// ══ EXPOSE GLOBALS (needed because type="module" scopes functions) ══
-Object.assign(window, {
-  doLogin, doLogout, switchTab, renderDashboard, deletePayslip,
-  openPdf, closePdfModal, saveAllReady, clearQueue, changeApiKey,
-  saveQueueItem, removeFromQueue, syncField, syncCalc, updateMiniTotals
+// ══ WIRE UP ALL EVENTS ══
+document.addEventListener('DOMContentLoaded', function(){
+  // Login
+  $('login-btn').addEventListener('click', doLogin);
+  $('login-pass').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+
+  // Topbar
+  $('btn-logout').addEventListener('click', doLogout);
+  $('btn-apikey').addEventListener('click', changeApiKey);
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(function(tab){
+    tab.addEventListener('click', function(){ switchTab(this.dataset.tab); });
+  });
+
+  // FY select
+  $('fy-select').addEventListener('change', renderDashboard);
+
+  // Dropzone
+  var dz=$('dropzone');
+  dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', function(){ dz.classList.remove('drag-over'); });
+  dz.addEventListener('drop', function(e){
+    e.preventDefault(); dz.classList.remove('drag-over');
+    var files=Array.from(e.dataTransfer.files).filter(function(f){ return f.type==='application/pdf'; });
+    if(!files.length){ alert('Please drop PDF files only.'); return; }
+    addFilesToQueue(files);
+  });
+  $('file-input').addEventListener('change', function(){ if(this.files.length) addFilesToQueue(this.files); this.value=''; });
+
+  // Queue buttons
+  $('btn-save-all').addEventListener('click', saveAllReady);
+  $('btn-clear-queue').addEventListener('click', clearQueue);
+
+  // Modal
+  $('modal-close-btn').addEventListener('click', closePdfModal);
+  $('pdf-modal').addEventListener('click', function(e){ if(e.target===this) closePdfModal(); });
 });
 </script>
 </body>
