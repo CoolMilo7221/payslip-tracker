@@ -338,7 +338,9 @@ document.getElementById('login-pass').addEventListener('keydown', e => { if (e.k
 
 // Pre-save provided Gemini key if not already set
 (function() {
-  // Enter your API key via the 'API key' button in the top bar
+  if (!localStorage.getItem('gemini_key')) {
+    localStorage.setItem('gemini_key', 'AIzaSyBtATeaKQVND35tF0f7ETxoB9m-if9RGec');
+  }
 })();
 
 // ══ TABS ══
@@ -684,7 +686,7 @@ Keys required: period (e.g. "April 2025"), employer, date (YYYY-MM-DD format), t
 Return ONLY the JSON object, no markdown, no explanation.`;
 
     // Direct Gemini API call — works from GitHub Pages (no CORS issue)
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
