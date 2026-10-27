@@ -561,6 +561,9 @@ function buildCard(item){
       dupWarn='<div class="dup-warn"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+
         '<span>A payslip for <strong>'+(item.dupMatch&&item.dupMatch.period||item.data.period||'this period')+'</strong> already exists. You can still save it or remove it.</span></div>';
     }
+    if(item.mismatch){
+      dupWarn+='<div class="dup-warn"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>'+item.mismatch+'</span></div>';
+    }
     body='<div class="queue-body">'+dupWarn+miniForm(item)+'</div>';
   }
   return header+body;
@@ -662,43 +665,72 @@ function extractJson(text){
   return null;
 }
 
+// Fast model first; the bigger one is only a fallback if it fails
+var GEMINI_MODELS=['gemini-flash-lite-latest','gemini-flash-latest'];
+var EXTRACT_PROMPT='Extract the payslip fields from this PDF. Return a single raw JSON object — no markdown, no code fences, just JSON.\n'+
+  'Keys required: period, employer, date (pay date, YYYY-MM-DD), gross (total gross earnings), tax (number string), net (number string), mf_hrs, mf_rate, mf_amt, sat_hrs, sat_rate, sat_amt, sun_hrs, sun_rate, sun_amt, ph_hrs, ph_rate, ph_amt.\n'+
+  'period: the pay period as "DD/MM/YYYY - DD/MM/YYYY" if the start and end dates are shown, otherwise a short description like "April 2025".\n'+
+  'mf = Monday–Friday/weekday/ordinary hours, sat = Saturday, sun = Sunday, ph = public holiday. Put EVERY earnings line into one of these four groups (a line that is not clearly Saturday, Sunday or public holiday, including casual loading lines, goes in mf). If several lines fall in the same group, add their hours and amounts together and use amount ÷ hours as the rate. The four *_amt values must add up to gross.\n'+
+  'Use empty string for missing text, "0" for missing numbers. No $ signs or commas.';
+
+// "PaySlip 09-10-2026 - 22-10-2026.pdf" (also 09:10:2026 style) -> "09/10/2026 - 22/10/2026"
+function periodFromFileName(name){
+  var m=(name||'').match(/(\d{1,2})[-:\/.](\d{1,2})[-:\/.](\d{4})\s*-\s*(\d{1,2})[-:\/.](\d{1,2})[-:\/.](\d{4})/);
+  if(!m) return null;
+  function p(n){ return ('0'+n).slice(-2); }
+  return p(m[1])+'/'+p(m[2])+'/'+m[3]+' - '+p(m[4])+'/'+p(m[5])+'/'+m[6];
+}
+
+async function callGemini(apiKey, base64Data){
+  var lastErr=null;
+  for(var mi=0; mi<GEMINI_MODELS.length; mi++){
+    var model=GEMINI_MODELS[mi];
+    for(var attempt=0; attempt<4; attempt++){
+      var ctl=new AbortController();
+      var timer=setTimeout(function(){ ctl.abort(); }, 60000);
+      var response;
+      try{
+        response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+apiKey,{
+          method:'POST', headers:{'Content-Type':'application/json'}, signal:ctl.signal,
+          body:JSON.stringify({
+            contents:[{parts:[{inline_data:{mime_type:'application/pdf',data:base64Data}},{text:EXTRACT_PROMPT}]}],
+            generationConfig:{temperature:0,maxOutputTokens:8192,responseMimeType:'application/json'}
+          })
+        });
+      }catch(e){ clearTimeout(timer); lastErr=new Error(model+' timed out'); break; } // try the next model
+      clearTimeout(timer);
+      if(response.status===429 && attempt<3){ await new Promise(function(res){ setTimeout(res, 15000*(attempt+1)); }); continue; } // rate limited: wait, retry
+      if(!response.ok){ var t=await response.text(); lastErr=new Error('API '+response.status+': '+t.slice(0,300)); break; }
+      var resp=await response.json();
+      if(resp.error){ lastErr=new Error(resp.error.message||'Gemini API error'); break; }
+      var parts=(resp.candidates&&resp.candidates[0]&&resp.candidates[0].content&&resp.candidates[0].content.parts)||[];
+      var raw=parts.filter(function(p){ return !p.thought; }).map(function(p){ return p.text||''; }).join('');
+      var parsed=extractJson(raw);
+      if(parsed) return parsed;
+      lastErr=new Error('No valid JSON in response.'); break;
+    }
+  }
+  throw lastErr||new Error('Extraction failed');
+}
+
 async function extractItem(item){
+  if(!queue.includes(item)) return; // removed while waiting its turn
   try{
     var base64Data=item.dataUrl.split(',')[1];
     if(!base64Data) throw new Error('Could not read PDF.');
     var apiKey=getApiKey();
     if(!apiKey){ item.status='error'; item.errorMsg='No API key provided.'; renderQueue(); return; }
-    var promptText='Extract all payslip fields from this PDF. Return a single raw JSON object — no markdown, no code fences, just JSON.\nKeys required: period (e.g. "April 2025"), employer, date (YYYY-MM-DD), tax (number string), net (number string), mf_hrs, mf_rate, mf_amt, sat_hrs, sat_rate, sat_amt, sun_hrs, sun_rate, sun_amt, ph_hrs, ph_rate, ph_amt.\nUse empty string for missing text, "0" for missing numbers. No $ signs or commas.';
-    var response;
-    for(var attempt=0; attempt<4; attempt++){
-      response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key='+apiKey,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          contents:[{parts:[
-            {inline_data:{mime_type:'application/pdf',data:base64Data}},
-            {text:promptText}
-          ]}],
-          generationConfig:{temperature:0,maxOutputTokens:1200,responseMimeType:'application/json'}
-        })
-      });
-      // Rate limited or busy: wait and try again
-      if((response.status===429||response.status===503) && attempt<3){
-        await new Promise(function(res){ setTimeout(res, 15000*(attempt+1)); });
-        continue;
-      }
-      break;
-    }
-    if(!response.ok){ var t=await response.text(); throw new Error('API '+response.status+': '+t.slice(0,300)); }
-    var resp=await response.json();
-    if(resp.error) throw new Error(resp.error.message||'Gemini API error');
-    var raw=(resp.candidates&&resp.candidates[0]&&resp.candidates[0].content&&resp.candidates[0].content.parts&&resp.candidates[0].content.parts[0]&&resp.candidates[0].content.parts[0].text)||'';
-    var parsed=extractJson(raw);
-    if(!parsed) throw new Error('No valid JSON in response.');
-    ['period','employer','date','tax','net','mf_hrs','mf_rate','mf_amt','sat_hrs','sat_rate','sat_amt','sun_hrs','sun_rate','sun_amt','ph_hrs','ph_rate','ph_amt'].forEach(function(k){
-      var v=(parsed[k]||'').toString().trim();
+    var parsed=await callGemini(apiKey, base64Data);
+    ['period','employer','date','gross','tax','net','mf_hrs','mf_rate','mf_amt','sat_hrs','sat_rate','sat_amt','sun_hrs','sun_rate','sun_amt','ph_hrs','ph_rate','ph_amt'].forEach(function(k){
+      var v=(parsed[k]||'').toString().replace(/[$,]/g,'').trim();
       if(v&&v!=='0') item.data[k]=v;
     });
+    var fp=periodFromFileName(item.fileName);
+    if(fp) item.data.period=fp; // file names from the Mail rule are exact
+    // Check the hours/amounts add up to the gross shown on the payslip
+    var sum=['mf','sat','sun','ph'].reduce(function(s,k){ return s+(parseFloat(item.data[k+'_amt'])||0); },0);
+    var gross=parseFloat(item.data.gross)||0;
+    item.mismatch=(gross>0 && Math.abs(sum-gross)>1) ? 'The pay lines add up to $'+sum.toFixed(2)+' but the payslip says gross is $'+gross.toFixed(2)+'. Please check the hours and amounts.' : '';
     var dup=findDuplicate(item.data.period, item.data.date);
     item.dupMatch=dup||null;
     item.status=dup?'duplicate':'review';
@@ -706,11 +738,11 @@ async function extractItem(item){
     console.error('Extraction failed:', err);
     item.status='error';
     item.errorMsg=err.message;
-    if(!item.data.period) item.data.period=item.fileName.replace(/\.pdf$/i,'').replace(/[_\-]/g,' ');
+    if(!item.data.period) item.data.period=periodFromFileName(item.fileName)||item.fileName.replace(/\.pdf$/i,'').replace(/[_\-]/g,' ');
   }
   renderQueue();
   // Folder imports that read cleanly can save themselves
-  if(item.auto && item.status==='review' && (item.data.period||'').trim() && syncAutoSaveOn()){
+  if(item.auto && item.status==='review' && !item.mismatch && (item.data.period||'').trim() && syncAutoSaveOn()){
     saveQueueItem(item.id);
     if(item.status==='saved'){ SYNC.savedThisSession++; renderSyncBanner(); }
   }
@@ -726,7 +758,7 @@ function saveQueueItem(id){
   if(!(item.data.period||'').trim()){ alert('Please enter a pay period before saving.'); return; }
   var rates={};
   ['mf','sat','sun','ph'].forEach(function(k){ rates[k+'_hrs']=item.data[k+'_hrs']||'0'; rates[k+'_rate']=item.data[k+'_rate']||'0'; rates[k+'_amt']=item.data[k+'_amt']||'0'; });
-  var entry={ id:Date.now().toString()+Math.random().toString(36).slice(2,6), period:item.data.period, employer:item.data.employer||'', net:item.data.net||'', date:item.data.date||'', tax:item.data.tax||'', rates:rates, savedAt:new Date().toISOString(), pdf:item.dataUrl||null, fileName:item.fileName };
+  var entry={ id:Date.now().toString()+Math.random().toString(36).slice(2,6), period:item.data.period, employer:item.data.employer||'', net:item.data.net||'', gross:item.data.gross||'', date:item.data.date||'', tax:item.data.tax||'', rates:rates, savedAt:new Date().toISOString(), pdf:item.dataUrl||null, fileName:item.fileName };
   var list=loadPayslips(); list.push(entry);
   try{ savePayslips(list); }
   catch(e){ alert('Couldn\'t save '+item.fileName+' — your browser storage for this site is full.'); return; }
@@ -767,7 +799,7 @@ function closePdfModal(){ $('pdf-modal').classList.remove('open'); $('pdf-frame'
 // ══ FOLDER SYNC ══
 // Reads payslip PDFs straight from folders on your computer (Chrome/Edge only).
 // Folder access is stored in IndexedDB; which files have been handled is stored in localStorage.
-var SYNC={ folders:[], state:{}, busy:false, backlog:{}, importedThisSession:0, savedThisSession:0, lastChecked:null, started:false };
+var SYNC={ folders:[], state:{}, busy:false, pending:{}, backlog:{}, importedThisSession:0, savedThisSession:0, lastChecked:null, started:false };
 var SYNC_SUPPORTED=('showDirectoryPicker' in window) && ('indexedDB' in window);
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -842,7 +874,7 @@ async function scanFolders(opts){
       files.forEach(function(f){
         f.key=rec.name+'/'+f.path;
         if(seen[f.key]) return;
-        if(queue.some(function(q){ return q.syncKey===f.key; })) return;
+        if(SYNC.pending[f.key] || queue.some(function(q){ return q.syncKey===f.key; })) return;
         if(knownNames[f.name.toLowerCase()]){ seen[f.key]='existing'; return; } // already uploaded by hand
         fresh.push(f);
       });
@@ -865,6 +897,8 @@ async function scanFolders(opts){
 }
 
 async function importFiles(files){
+  files=files.filter(function(f){ return !SYNC.pending[f.key] && !queue.some(function(q){ return q.syncKey===f.key; }); });
+  files.forEach(function(f){ SYNC.pending[f.key]=true; }); // claim them before the first await
   for(var i=0;i<files.length;i++){
     var f=files[i];
     try{
@@ -872,6 +906,7 @@ async function importFiles(files){
       addFilesToQueue([file], { auto:true, syncKey:f.key });
       SYNC.importedThisSession++;
     }catch(e){ console.warn('Couldn\'t read '+f.path, e); } // e.g. still downloading from iCloud — tried again next check
+    finally{ delete SYNC.pending[f.key]; }
   }
 }
 
