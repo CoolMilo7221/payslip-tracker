@@ -178,6 +178,27 @@ html,body{height:100%;background:var(--bg);font-family:'DM Sans',sans-serif;colo
 .modal-close svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
 .modal-body{flex:1;overflow:auto;padding:1rem}
 .modal-body iframe{width:100%;height:65vh;border:none;border-radius:var(--radius)}
+/* FOLDER SYNC */
+.sync-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1.25rem}
+.sync-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.sync-title{font-size:14px;font-weight:600;color:var(--text)}
+.sync-sub{font-size:13px;color:var(--text2);margin-top:2px;max-width:460px}
+.sync-actions{display:flex;gap:8px;flex-wrap:wrap}
+.sync-folders{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.sync-folder{display:flex;align-items:center;gap:10px;background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:8px 12px}
+.sync-folder svg{width:18px;height:18px;stroke:var(--accent);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.sync-folder-name{font-size:13px;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sync-folder-status{font-size:12px;color:var(--text2);white-space:nowrap}
+.sync-folder-status.warn{color:var(--warn)}
+.sync-empty{font-size:13px;color:var(--text3);padding:4px 0}
+.sync-opt{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text2);cursor:pointer}
+.sync-opt input{margin-top:3px;accent-color:var(--accent)}
+.sync-note{font-size:13px;padding:10px 14px;border-radius:var(--radius);margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.sync-note.info{background:var(--accent-light);color:var(--accent)}
+.sync-note.warn{background:var(--warn-light);color:var(--warn);border:0.5px solid var(--warn-border)}
+.sync-note .btns{display:flex;gap:8px}
+.sync-banner{margin-bottom:1.25rem}
+.sync-banner .sync-note{margin-top:0}
 @media(max-width:620px){.app-body{padding:1rem}.topbar{padding:0 1rem}.payslip-amounts,.payslip-date{display:none}.mini-grid{grid-template-columns:1fr}.rates-row,.rates-header{grid-template-columns:60px 1fr 1fr}}
 </style>
 </head>
@@ -219,6 +240,7 @@ html,body{height:100%;background:var(--bg);font-family:'DM Sans',sans-serif;colo
 
     <!-- DASHBOARD -->
     <div id="tab-dashboard" class="tab-panel active-tab">
+      <div class="sync-banner" id="sync-banner"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px;">
         <div style="font-size:18px;font-family:'DM Serif Display',serif;">Overview</div>
         <div class="fy-toggle">Financial year: <select id="fy-select"></select></div>
@@ -247,6 +269,21 @@ html,body{height:100%;background:var(--bg);font-family:'DM Sans',sans-serif;colo
     <!-- UPLOAD -->
     <div id="tab-upload" class="tab-panel">
       <div style="font-size:18px;font-family:'DM Serif Display',serif;margin-bottom:1.25rem;">Add payslips</div>
+      <div class="sync-card" id="sync-card">
+        <div class="sync-head">
+          <div>
+            <div class="sync-title">Payslip folders</div>
+            <div class="sync-sub">Connect the folders your payslips save into. New PDFs are picked up whenever this page is open.</div>
+          </div>
+          <div class="sync-actions">
+            <button class="btn-ghost" id="btn-sync-now">Check now</button>
+            <button class="btn-ghost" id="btn-add-folder">+ Connect folder</button>
+          </div>
+        </div>
+        <div class="sync-folders" id="sync-folders"></div>
+        <label class="sync-opt"><input type="checkbox" id="sync-autosave"/> <span>Save new payslips automatically when they read cleanly. Possible duplicates and read errors still wait for you to review.</span></label>
+        <div id="sync-notes"></div>
+      </div>
       <div class="dropzone" id="dropzone">
         <input type="file" accept="application/pdf" id="file-input" multiple/>
         <div class="dropzone-icon"><svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg></div>
@@ -322,6 +359,7 @@ function doLogin(){
     $('topbar-user').textContent=u;
     populateFySelect();
     renderDashboard();
+    syncInit();
   } else {
     $('login-error').style.display='block';
   }
@@ -457,16 +495,26 @@ function findDuplicate(period, date){
 }
 
 // ══ QUEUE ══
-function addFilesToQueue(files){
+// Extractions run one at a time so a big batch doesn't hit Gemini's rate limit
+var extractChain=Promise.resolve();
+function queueExtraction(item){
+  extractChain=extractChain.then(function(){ return extractItem(item); }).catch(function(e){ console.error(e); });
+  return extractChain;
+}
+
+function addFilesToQueue(files, opts){
+  opts=opts||{};
   Array.from(files).forEach(function(f){
-    if(f.type!=='application/pdf'){ alert(f.name+' is not a PDF and was skipped.'); return; }
-    if(f.size>20*1024*1024){ alert(f.name+' is too large (max 20 MB) and was skipped.'); return; }
+    var isPdf=f.type==='application/pdf'||/\.pdf$/i.test(f.name);
+    if(!isPdf){ if(!opts.auto) alert(f.name+' is not a PDF and was skipped.'); return; }
+    if(f.size>20*1024*1024){ if(!opts.auto) alert(f.name+' is too large (max 20 MB) and was skipped.'); return; }
     var id='q_'+Date.now()+'_'+Math.random().toString(36).slice(2);
-    var item={ id:id, fileName:f.name, dataUrl:null, status:'extracting', data:{}, dupMatch:null, errorMsg:'' };
+    var item={ id:id, fileName:f.name, dataUrl:null, status:'extracting', data:{}, dupMatch:null, errorMsg:'', auto:!!opts.auto, syncKey:opts.syncKey||null };
     queue.push(item);
     renderQueue();
     var reader=new FileReader();
-    reader.onload=function(e){ item.dataUrl=e.target.result; extractItem(item); };
+    reader.onload=function(e){ item.dataUrl=e.target.result.replace(/^data:[^;]*;/,'data:application/pdf;'); queueExtraction(item); };
+    reader.onerror=function(){ item.status='error'; item.errorMsg='Could not read the file'; renderQueue(); };
     reader.readAsDataURL(f);
   });
 }
@@ -621,17 +669,26 @@ async function extractItem(item){
     var apiKey=getApiKey();
     if(!apiKey){ item.status='error'; item.errorMsg='No API key provided.'; renderQueue(); return; }
     var promptText='Extract all payslip fields from this PDF. Return a single raw JSON object — no markdown, no code fences, just JSON.\nKeys required: period (e.g. "April 2025"), employer, date (YYYY-MM-DD), tax (number string), net (number string), mf_hrs, mf_rate, mf_amt, sat_hrs, sat_rate, sat_amt, sun_hrs, sun_rate, sun_amt, ph_hrs, ph_rate, ph_amt.\nUse empty string for missing text, "0" for missing numbers. No $ signs or commas.';
-    var response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key='+apiKey,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        contents:[{parts:[
-          {inline_data:{mime_type:'application/pdf',data:base64Data}},
-          {text:promptText}
-        ]}],
-        generationConfig:{temperature:0,maxOutputTokens:1200,responseMimeType:'application/json'}
-      })
-    });
+    var response;
+    for(var attempt=0; attempt<4; attempt++){
+      response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key='+apiKey,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          contents:[{parts:[
+            {inline_data:{mime_type:'application/pdf',data:base64Data}},
+            {text:promptText}
+          ]}],
+          generationConfig:{temperature:0,maxOutputTokens:1200,responseMimeType:'application/json'}
+        })
+      });
+      // Rate limited or busy: wait and try again
+      if((response.status===429||response.status===503) && attempt<3){
+        await new Promise(function(res){ setTimeout(res, 15000*(attempt+1)); });
+        continue;
+      }
+      break;
+    }
     if(!response.ok){ var t=await response.text(); throw new Error('API '+response.status+': '+t.slice(0,300)); }
     var resp=await response.json();
     if(resp.error) throw new Error(resp.error.message||'Gemini API error');
@@ -652,6 +709,11 @@ async function extractItem(item){
     if(!item.data.period) item.data.period=item.fileName.replace(/\.pdf$/i,'').replace(/[_\-]/g,' ');
   }
   renderQueue();
+  // Folder imports that read cleanly can save themselves
+  if(item.auto && item.status==='review' && (item.data.period||'').trim() && syncAutoSaveOn()){
+    saveQueueItem(item.id);
+    if(item.status==='saved'){ SYNC.savedThisSession++; renderSyncBanner(); }
+  }
 }
 
 // ══ SAVE / REMOVE ══
@@ -664,14 +726,21 @@ function saveQueueItem(id){
   if(!(item.data.period||'').trim()){ alert('Please enter a pay period before saving.'); return; }
   var rates={};
   ['mf','sat','sun','ph'].forEach(function(k){ rates[k+'_hrs']=item.data[k+'_hrs']||'0'; rates[k+'_rate']=item.data[k+'_rate']||'0'; rates[k+'_amt']=item.data[k+'_amt']||'0'; });
-  var entry={ id:Date.now().toString(), period:item.data.period, employer:item.data.employer||'', net:item.data.net||'', date:item.data.date||'', tax:item.data.tax||'', rates:rates, savedAt:new Date().toISOString(), pdf:item.dataUrl||null, fileName:item.fileName };
-  var list=loadPayslips(); list.push(entry); savePayslips(list);
+  var entry={ id:Date.now().toString()+Math.random().toString(36).slice(2,6), period:item.data.period, employer:item.data.employer||'', net:item.data.net||'', date:item.data.date||'', tax:item.data.tax||'', rates:rates, savedAt:new Date().toISOString(), pdf:item.dataUrl||null, fileName:item.fileName };
+  var list=loadPayslips(); list.push(entry);
+  try{ savePayslips(list); }
+  catch(e){ alert('Couldn\'t save '+item.fileName+' — your browser storage for this site is full.'); return; }
+  if(item.syncKey) markSeen(item.syncKey,'saved');
   item.status='saved';
   renderQueue();
   populateFySelect(); renderDashboard();
 }
 
-function removeFromQueue(id){ queue=queue.filter(function(i){ return i.id!==id; }); renderQueue(); }
+function removeFromQueue(id){
+  var it=queue.find(function(i){ return i.id===id; });
+  if(it && it.syncKey && it.status!=='saved') markSeen(it.syncKey,'ignored'); // don't re-import something you removed
+  queue=queue.filter(function(i){ return i.id!==id; }); renderQueue();
+}
 
 function saveAllReady(){
   var ready=queue.filter(function(i){ return i.status==='review'; });
@@ -681,6 +750,7 @@ function saveAllReady(){
 
 function clearQueue(){
   if(queue.some(function(i){ return i.status!=='saved'; })&&!confirm('Remove all unsaved payslips?')) return;
+  queue.forEach(function(i){ if(i.syncKey && i.status!=='saved') markSeen(i.syncKey,'ignored'); });
   queue=[]; renderQueue();
 }
 
@@ -693,6 +763,260 @@ function openPdf(id){
   $('pdf-modal').classList.add('open');
 }
 function closePdfModal(){ $('pdf-modal').classList.remove('open'); $('pdf-frame').src=''; }
+
+// ══ FOLDER SYNC ══
+// Reads payslip PDFs straight from folders on your computer (Chrome/Edge only).
+// Folder access is stored in IndexedDB; which files have been handled is stored in localStorage.
+var SYNC={ folders:[], state:{}, busy:false, backlog:{}, importedThisSession:0, savedThisSession:0, lastChecked:null, started:false };
+var SYNC_SUPPORTED=('showDirectoryPicker' in window) && ('indexedDB' in window);
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+function idbOpen(){
+  return new Promise(function(res,rej){
+    var r=indexedDB.open('payslip-sync',1);
+    r.onupgradeneeded=function(){ r.result.createObjectStore('folders',{keyPath:'id'}); };
+    r.onsuccess=function(){ res(r.result); };
+    r.onerror=function(){ rej(r.error); };
+  });
+}
+function idbGetAll(){
+  return idbOpen().then(function(db){ return new Promise(function(res,rej){
+    var q=db.transaction('folders').objectStore('folders').getAll();
+    q.onsuccess=function(){ res(q.result||[]); }; q.onerror=function(){ rej(q.error); };
+  }); });
+}
+function idbWrite(fn){
+  return idbOpen().then(function(db){ return new Promise(function(res,rej){
+    var tx=db.transaction('folders','readwrite'); fn(tx.objectStore('folders'));
+    tx.oncomplete=function(){ res(); }; tx.onerror=function(){ rej(tx.error); };
+  }); });
+}
+function idbPut(rec){ return idbWrite(function(st){ st.put({ id:rec.id, name:rec.name, handle:rec.handle, initialised:!!rec.initialised, addedAt:rec.addedAt }); }); }
+function idbDel(id){ return idbWrite(function(st){ st.delete(id); }); }
+
+function loadSeen(){ try{ return JSON.parse(localStorage.getItem('sync_seen')||'{}'); }catch(e){ return {}; } }
+function saveSeen(s){ try{ localStorage.setItem('sync_seen', JSON.stringify(s)); }catch(e){} }
+function markSeen(key, v){ var s=loadSeen(); s[key]=v; saveSeen(s); }
+function syncAutoSaveOn(){ return localStorage.getItem('sync_autosave')!=='0'; }
+
+async function listPayslipPdfs(dir, prefix, out, depth){
+  for await (var entry of dir.entries()){
+    var name=entry[0], h=entry[1];
+    if(name.charAt(0)==='.') continue;
+    if(h.kind==='directory'){ if(depth<4) await listPayslipPdfs(h, prefix+name+'/', out, depth+1); }
+    else if(/\.pdf$/i.test(name) && /pay\s*slip/i.test(name)) out.push({ path:prefix+name, name:name, handle:h });
+  }
+  return out;
+}
+
+async function ensurePermission(rec, interactive){
+  var opts={mode:'read'};
+  var p='prompt';
+  try{ p=await rec.handle.queryPermission(opts); }catch(e){}
+  if(p!=='granted' && interactive){ try{ p=await rec.handle.requestPermission(opts); }catch(e){} }
+  return p==='granted';
+}
+
+async function scanFolders(opts){
+  opts=opts||{};
+  if(!SYNC_SUPPORTED || SYNC.busy || !currentUser) return;
+  SYNC.busy=true; renderSyncUI();
+  try{
+    SYNC.folders=await idbGetAll();
+    var seen=loadSeen();
+    var knownNames={};
+    loadPayslips().forEach(function(p){ if(p.fileName) knownNames[p.fileName.toLowerCase()]=true; });
+    for(var i=0;i<SYNC.folders.length;i++){
+      var rec=SYNC.folders[i];
+      var st=SYNC.state[rec.id]=SYNC.state[rec.id]||{};
+      if(opts.onlyId && rec.id!==opts.onlyId) continue;
+      var ok=await ensurePermission(rec, !!opts.interactive);
+      st.perm=ok?'granted':'prompt';
+      if(!ok) continue;
+      var files;
+      try{ files=await listPayslipPdfs(rec.handle,'',[],0); st.error=null; }
+      catch(e){ st.error='Can\'t open this folder — it may have been moved or renamed'; continue; }
+      st.count=files.length; st.checkedAt=new Date();
+      var fresh=[];
+      files.forEach(function(f){
+        f.key=rec.name+'/'+f.path;
+        if(seen[f.key]) return;
+        if(queue.some(function(q){ return q.syncKey===f.key; })) return;
+        if(knownNames[f.name.toLowerCase()]){ seen[f.key]='existing'; return; } // already uploaded by hand
+        fresh.push(f);
+      });
+      saveSeen(seen);
+      if(!rec.initialised && fresh.length>3){
+        // First look at a folder full of older payslips — ask before importing them all
+        SYNC.backlog[rec.id]={ rec:rec, files:fresh };
+        continue;
+      }
+      delete SYNC.backlog[rec.id];
+      if(!rec.initialised){ rec.initialised=true; await idbPut(rec); }
+      await importFiles(fresh);
+    }
+    SYNC.lastChecked=new Date();
+  } catch(e){
+    console.error('Folder sync failed:', e);
+  } finally {
+    SYNC.busy=false; renderSyncUI();
+  }
+}
+
+async function importFiles(files){
+  for(var i=0;i<files.length;i++){
+    var f=files[i];
+    try{
+      var file=await f.handle.getFile();
+      addFilesToQueue([file], { auto:true, syncKey:f.key });
+      SYNC.importedThisSession++;
+    }catch(e){ console.warn('Couldn\'t read '+f.path, e); } // e.g. still downloading from iCloud — tried again next check
+  }
+}
+
+async function connectFolder(){
+  if(!SYNC_SUPPORTED){ alert('Connecting folders works in Chrome on your computer.'); return; }
+  var handle;
+  try{ handle=await window.showDirectoryPicker({ id:'payslip-folders', mode:'read', startIn:'desktop' }); }
+  catch(e){ return; } // cancelled
+  var all=await idbGetAll();
+  for(var i=0;i<all.length;i++){
+    try{ if(await all[i].handle.isSameEntry(handle)){ alert('"'+handle.name+'" is already connected.'); return; } }catch(e){}
+  }
+  var rec={ id:'f_'+Date.now(), name:handle.name, handle:handle, initialised:false, addedAt:new Date().toISOString() };
+  await idbPut(rec);
+  SYNC.state[rec.id]={ perm:'granted' };
+  await scanFolders({ onlyId:rec.id });
+}
+
+async function disconnectFolder(id){
+  var rec=SYNC.folders.find(function(r){ return r.id===id; });
+  if(!rec || !confirm('Stop checking "'+rec.name+'" for payslips? Payslips already in the tracker stay.')) return;
+  await idbDel(id);
+  delete SYNC.state[id]; delete SYNC.backlog[id];
+  SYNC.folders=SYNC.folders.filter(function(r){ return r.id!==id; });
+  renderSyncUI();
+}
+
+async function importBacklog(id){
+  var b=SYNC.backlog[id]; if(!b) return;
+  delete SYNC.backlog[id];
+  b.rec.initialised=true; await idbPut(b.rec);
+  switchTab('upload');
+  renderSyncUI();
+  await importFiles(b.files);
+}
+
+async function skipBacklog(id){
+  var b=SYNC.backlog[id]; if(!b) return;
+  var seen=loadSeen();
+  b.files.forEach(function(f){ seen[f.key]='skipped'; });
+  saveSeen(seen);
+  delete SYNC.backlog[id];
+  b.rec.initialised=true; await idbPut(b.rec);
+  renderSyncUI();
+}
+
+function timeAgo(d){
+  if(!d) return '';
+  var s=Math.round((Date.now()-d.getTime())/1000);
+  if(s<60) return 'just now';
+  if(s<3600) return Math.round(s/60)+' min ago';
+  return d.toLocaleTimeString('en-AU',{hour:'numeric',minute:'2-digit'});
+}
+
+function renderSyncUI(){ renderSyncFolders(); renderSyncNotes(); renderSyncBanner(); }
+
+function renderSyncFolders(){
+  var box=$('sync-folders'); if(!box) return;
+  if(!SYNC_SUPPORTED){
+    box.innerHTML='<div class="sync-empty">Folder syncing works in Chrome on your Mac. You can still drop PDFs in below.</div>';
+    $('btn-add-folder').disabled=true; $('btn-sync-now').disabled=true; return;
+  }
+  if(!SYNC.folders.length){
+    box.innerHTML='<div class="sync-empty">No folders connected yet. Connect <strong>Desktop › Old Man Drew</strong> and <strong>Desktop › Belgravia Leisure › Payslips</strong>.</div>';
+    return;
+  }
+  var icon='<svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
+  box.innerHTML=SYNC.folders.map(function(rec){
+    var st=SYNC.state[rec.id]||{}, status, extra='';
+    if(st.error){ status='<span class="sync-folder-status warn">'+esc(st.error)+'</span>'; }
+    else if(st.perm==='prompt'){ status='<span class="sync-folder-status warn">Needs your OK</span>'; extra='<button class="btn-sm btn-sm-primary" data-allow="'+rec.id+'">Allow</button>'; }
+    else if(st.count!=null){ status='<span class="sync-folder-status">'+st.count+' payslip'+(st.count!==1?'s':'')+' · checked '+timeAgo(st.checkedAt)+'</span>'; }
+    else { status='<span class="sync-folder-status">Checking…</span>'; }
+    return '<div class="sync-folder">'+icon+'<span class="sync-folder-name">'+esc(rec.name)+'</span>'+status+extra+
+      '<button class="queue-remove" title="Disconnect folder" data-unlink="'+rec.id+'"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>';
+  }).join('');
+}
+
+function renderSyncNotes(){
+  var box=$('sync-notes'); if(!box) return;
+  var html='';
+  Object.keys(SYNC.backlog).forEach(function(id){
+    var b=SYNC.backlog[id];
+    html+='<div class="sync-note warn"><span>Found <strong>'+b.files.length+'</strong> payslips in "'+esc(b.rec.name)+'" that aren\'t in your tracker yet.</span>'+
+      '<span class="btns"><button class="btn-sm btn-sm-primary" data-import="'+id+'">Import them</button><button class="btn-sm" data-skip="'+id+'">Skip, only add new ones</button></span></div>';
+  });
+  if(SYNC.busy) html+='<div class="sync-note info">Checking your folders…</div>';
+  box.innerHTML=html;
+}
+
+function renderSyncBanner(){
+  var box=$('sync-banner'); if(!box) return;
+  if(!SYNC_SUPPORTED){ box.innerHTML=''; return; }
+  var html='';
+  var needPerm=SYNC.folders.filter(function(r){ return (SYNC.state[r.id]||{}).perm==='prompt'; });
+  if(needPerm.length){
+    html+='<div class="sync-note warn"><span>Chrome needs your OK to check your payslip folders for new payslips.</span><span class="btns"><button class="btn-sm btn-sm-primary" data-allow-all="1">Allow</button></span></div>';
+  }
+  var backlogCount=Object.keys(SYNC.backlog).reduce(function(s,id){ return s+SYNC.backlog[id].files.length; },0);
+  if(backlogCount){
+    html+='<div class="sync-note warn"><span>Found '+backlogCount+' older payslip'+(backlogCount!==1?'s':'')+' in your folders that aren\'t in the tracker yet.</span><span class="btns"><button class="btn-sm" data-goto-upload="1">Review</button></span></div>';
+  }
+  var waiting=queue.filter(function(q){ return q.auto && (q.status==='review'||q.status==='duplicate'||q.status==='error'); }).length;
+  var reading=queue.filter(function(q){ return q.auto && q.status==='extracting'; }).length;
+  if(SYNC.savedThisSession){
+    html+='<div class="sync-note info"><span>✓ '+SYNC.savedThisSession+' new payslip'+(SYNC.savedThisSession!==1?'s':'')+' added from your folders</span></div>';
+  }
+  if(reading){
+    html+='<div class="sync-note info"><span>Reading '+reading+' new payslip'+(reading!==1?'s':'')+' from your folders…</span></div>';
+  }
+  if(waiting){
+    html+='<div class="sync-note warn"><span>'+waiting+' payslip'+(waiting!==1?'s':'')+' from your folders need'+(waiting===1?'s':'')+' a quick check before saving.</span><span class="btns"><button class="btn-sm" data-goto-upload="1">Review</button></span></div>';
+  }
+  box.innerHTML=html;
+}
+
+function onSyncClick(e){
+  var b=e.target.closest('button'); if(!b) return;
+  var d=b.dataset;
+  if(d.allow) scanFolders({ interactive:true, onlyId:d.allow });
+  else if(d.allowAll) scanFolders({ interactive:true });
+  else if(d.unlink) disconnectFolder(d.unlink);
+  else if(d.import) importBacklog(d.import);
+  else if(d.skip) skipBacklog(d.skip);
+  else if(d.gotoUpload) switchTab('upload');
+}
+
+async function syncInit(){
+  if(!SYNC_SUPPORTED){ renderSyncUI(); return; }
+  $('sync-autosave').checked=syncAutoSaveOn();
+  try{ SYNC.folders=await idbGetAll(); }catch(e){ SYNC.folders=[]; }
+  renderSyncUI();
+  if(!SYNC.started){
+    SYNC.started=true;
+    // Mail can drop a new payslip in while the page is open, so check again whenever you come back to it
+    document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='visible') scanFolders(); });
+    window.addEventListener('focus', function(){ scanFolders(); });
+    setInterval(function(){ if(document.visibilityState==='visible') scanFolders(); }, 5*60*1000);
+  }
+  scanFolders();
+}
+
+// Keep the dashboard banner in step with the queue
+var _renderQueue=renderQueue;
+renderQueue=function(){ _renderQueue(); renderSyncBanner(); };
 
 // ══ WIRE UP ALL EVENTS ══
 document.addEventListener('DOMContentLoaded', function(){
@@ -727,6 +1051,13 @@ document.addEventListener('DOMContentLoaded', function(){
   // Queue buttons
   $('btn-save-all').addEventListener('click', saveAllReady);
   $('btn-clear-queue').addEventListener('click', clearQueue);
+
+  // Folder sync
+  $('btn-add-folder').addEventListener('click', connectFolder);
+  $('btn-sync-now').addEventListener('click', function(){ scanFolders({ interactive:true }); });
+  $('sync-autosave').addEventListener('change', function(){ localStorage.setItem('sync_autosave', this.checked?'1':'0'); });
+  $('sync-card').addEventListener('click', onSyncClick);
+  $('sync-banner').addEventListener('click', onSyncClick);
 
   // Modal
   $('modal-close-btn').addEventListener('click', closePdfModal);
