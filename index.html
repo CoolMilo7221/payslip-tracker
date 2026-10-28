@@ -2,10 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-uaNshlKbpnnnmsxHso6ZPreKvLA6ZhyZ7Ns1AJ4MPH4=' https://cdn.jsdelivr.net/npm/chart.js@4.4.0/ https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/; style-src 'unsafe-inline'; img-src data: blob:; connect-src https://generativelanguage.googleapis.com; frame-src data: blob:; object-src data: blob:; base-uri 'none'; form-action 'none'"/>
+<meta name="referrer" content="no-referrer"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="color-scheme" content="light dark"/>
 <title>Payslip Tracker</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js" integrity="sha384-FcQlsUOd0TJjROrBxhJdUhXTUgNJQxTMcxZe6nHbaEfFL1zjQ+bq/uRoBQxb0KMo" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -499,6 +501,22 @@ select.mini-input{appearance:none;-webkit-appearance:none;cursor:pointer}
   .print-only{display:block}
   .app-body{padding:0}
 }
+
+/* LOCK + SECURITY */
+.touch-btn{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:0}
+.touch-btn svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round}
+.or{text-align:center;font-size:12px;color:var(--text3);margin:14px 0 10px}
+.link-btn{background:none;border:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;display:block;margin:14px auto 0;padding:4px}
+.setup-note{font-size:13px;color:var(--text2);background:var(--fill2);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:14px;line-height:1.5}
+.sec-box{width:560px}
+.sec-body{padding:16px 18px 20px}
+.sec-row{font-size:13px;padding:10px 14px;border-radius:12px}
+.sec-ok{background:var(--green-soft)}
+.sec-section{margin-top:18px}
+.sec-title{font-size:13px;font-weight:700;margin-bottom:8px}
+.sec-line{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;color:var(--text2);flex-wrap:wrap}
+.sec-line .input{flex:1;min-width:200px}
+.sec-msg{font-size:13px;font-weight:600;margin-top:14px;min-height:18px}
 </style>
 </head>
 <body>
@@ -506,14 +524,32 @@ select.mini-input{appearance:none;-webkit-appearance:none;cursor:pointer}
 <!-- LOGIN -->
 <div id="s-login" class="screen active">
   <div class="login-box glass">
-    <div class="app-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+    <div class="app-icon"><svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
     <div class="login-title">Payslip Tracker</div>
-    <div class="login-sub">Sign in to see your pay across every job.</div>
-    <div class="field"><label for="login-user">Username</label><input type="text" id="login-user" placeholder="Username" autocomplete="username"/></div>
-    <div class="field"><label for="login-pass">Password</label><input type="password" id="login-pass" placeholder="Password" autocomplete="current-password"/></div>
-    <button class="btn-primary" id="login-btn">Sign in</button>
-    <div class="login-error" id="login-error">Incorrect username or password.</div>
-    <div class="login-hint">Default: <code>admin</code> / <code>payslips</code></div>
+    <div class="login-sub" id="lock-sub">Locked</div>
+
+    <div id="lock-unlock" style="display:none">
+      <button class="btn-primary touch-btn" id="btn-touch" type="button"><svg viewBox="0 0 24 24"><path d="M12 11c0 3.5-.5 6-1.5 8"/><path d="M8.5 7.5A5 5 0 0 1 17 11c0 2.5-.3 4.7-.9 6.5"/><path d="M5.6 9.5A8 8 0 0 1 19.8 8"/><path d="M5 13.5c.3-1 .4-1.9.4-2.5"/><path d="M8 11a4 4 0 0 1 .3-1.5"/><path d="M14.5 11c0 2.6-.3 4.9-1 7"/><path d="M20 11.5c0 1.5-.1 3-.4 4.3"/></svg>Unlock with Touch ID</button>
+      <div class="or" id="lock-or">or use your passcode</div>
+      <div class="field"><input type="password" id="lock-pass" placeholder="Passcode" autocomplete="current-password"/></div>
+      <button class="btn-primary" id="btn-unlock" type="button">Unlock</button>
+      <button class="link-btn" id="btn-forgot" type="button">Forgot passcode?</button>
+    </div>
+
+    <div id="lock-setup" style="display:none">
+      <div class="setup-note">🔐 Your payslips, PDFs and Gemini key will be <strong>encrypted</strong> on this Mac. Only your passcode (or Touch ID, next step) can unlock them.<br><br><strong>Don't forget it</strong> — it can't be reset without wiping the tracker. Your PDFs on the Desktop stay safe either way.</div>
+      <div class="field"><label for="setup-pass">New passcode</label><input type="password" id="setup-pass" autocomplete="new-password" placeholder="At least 6 characters"/></div>
+      <div class="field"><label for="setup-pass2">Confirm passcode</label><input type="password" id="setup-pass2" autocomplete="new-password" placeholder="Type it again"/></div>
+      <button class="btn-primary" id="btn-setup" type="button">Encrypt &amp; continue</button>
+    </div>
+
+    <div id="lock-touch-offer" style="display:none">
+      <div class="setup-note">👆 Want to unlock with your fingerprint? Your Mac will ask you to touch the Touch ID sensor (sometimes twice).</div>
+      <button class="btn-primary" id="btn-touch-setup" type="button">Set up Touch ID</button>
+      <button class="link-btn" id="btn-touch-skip" type="button">Not now</button>
+    </div>
+
+    <div class="login-error" id="login-error"></div>
   </div>
 </div>
 
@@ -537,8 +573,8 @@ select.mini-input{appearance:none;-webkit-appearance:none;cursor:pointer}
     <div class="topbar-right">
       <span class="topbar-user" id="topbar-user"></span>
       <button class="btn btn-wrapped" id="btn-wrapped">✨ Wrapped</button>
-      <button class="btn btn-ghost" id="btn-apikey">API key</button>
-      <button class="btn btn-ghost" id="btn-logout">Sign out</button>
+      <button class="btn btn-ghost" id="btn-security"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Security</button>
+      <button class="btn btn-ghost" id="btn-lock"><svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Lock</button>
     </div>
   </div>
 
@@ -773,6 +809,49 @@ select.mini-input{appearance:none;-webkit-appearance:none;cursor:pointer}
 <div id="wrapped" role="dialog" aria-label="Wrapped"></div>
 <div class="heat-tip" id="heat-tip"></div>
 
+<!-- SECURITY -->
+<div class="modal-overlay" id="sec-modal">
+  <div class="modal-box glass sec-box">
+    <div class="modal-header">
+      <span class="modal-title">Security</span>
+      <button class="modal-close" id="sec-close" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body sec-body">
+      <div class="sec-row sec-ok">🔒 Your payslips, PDFs, goals and API key are encrypted on this device (AES-256). The tracker locks itself when you're away.</div>
+
+      <div class="sec-section">
+        <div class="sec-title">Touch ID</div>
+        <div class="sec-line"><span id="sec-touch-status"></span><button class="btn btn-ghost" id="sec-touch-btn">Set up Touch ID</button></div>
+      </div>
+
+      <div class="sec-section">
+        <div class="sec-title">Auto-lock</div>
+        <div class="sec-line"><span>Lock after no activity for</span>
+          <select class="select" id="sec-lock"><option value="2">2 minutes</option><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60">1 hour</option></select></div>
+      </div>
+
+      <div class="sec-section">
+        <div class="sec-title">Change passcode</div>
+        <div class="form-grid">
+          <input class="input" type="password" id="sec-cur" placeholder="Current passcode" autocomplete="current-password"/>
+          <input class="input" type="password" id="sec-new" placeholder="New passcode" autocomplete="new-password"/>
+          <input class="input" type="password" id="sec-new2" placeholder="Confirm new passcode" autocomplete="new-password"/>
+        </div>
+        <div class="sec-line" style="justify-content:flex-end;margin-top:8px"><button class="btn btn-ghost" id="sec-pass-btn">Change passcode</button></div>
+      </div>
+
+      <div class="sec-section">
+        <div class="sec-title">Gemini API key</div>
+        <div class="sec-line"><span id="sec-key-status"></span></div>
+        <div class="sec-line"><input class="input" type="password" id="sec-key" placeholder="Paste a new key to replace it" autocomplete="off"/><button class="btn btn-ghost" id="sec-key-btn">Save key</button></div>
+        <div class="goal-sub" style="margin-top:6px">The key is only ever sent to Google's Gemini service, inside the request (never in the web address).</div>
+      </div>
+
+      <div class="sec-msg" id="sec-msg"></div>
+    </div>
+  </div>
+</div>
+
 <!-- PDF MODAL -->
 <div class="modal-overlay" id="pdf-modal">
   <div class="modal-box glass">
@@ -785,8 +864,281 @@ select.mini-input{appearance:none;-webkit-appearance:none;cursor:pointer}
 </div>
 
 <script>
+// ══ SECURE STORAGE ══
+// Everything personal is encrypted with AES-256-GCM using a random data key. That data key is itself
+// encrypted ("wrapped") by a key derived from your passcode (PBKDF2, 600,000 rounds) and, optionally,
+// by a key that only your Touch ID passkey can produce (WebAuthn PRF). Nothing readable is stored on disk.
+var LS=window.localStorage;
+var PROTECTED=['payslips','jobs','folder_jobs','sync_seen','gemini_key','goals','forecasts','fc_draft','backup_before_redesign','backup_before_fun_update'];
+var VAULT={ key:null, cache:{}, unlocked:false, pending:Promise.resolve(), meta:null };
+var SS={
+  getItem:function(k){
+    if(PROTECTED.indexOf(k)<0) return LS.getItem(k);
+    return (VAULT.unlocked && Object.prototype.hasOwnProperty.call(VAULT.cache,k)) ? VAULT.cache[k] : null;
+  },
+  setItem:function(k,v){
+    if(PROTECTED.indexOf(k)<0) return LS.setItem(k,v);
+    if(!VAULT.unlocked) throw new Error('Tracker is locked');
+    v=String(v); VAULT.cache[k]=v; persistEnc(k,v);
+  },
+  removeItem:function(k){
+    if(PROTECTED.indexOf(k)<0) return LS.removeItem(k);
+    delete VAULT.cache[k]; LS.removeItem('enc:'+k);
+  }
+};
+var TE=new TextEncoder(), TD=new TextDecoder();
+function b64(buf){ var b=new Uint8Array(buf), s=''; for(var i=0;i<b.length;i+=0x8000) s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(s); }
+function unb64(s){ var bin=atob(s), b=new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) b[i]=bin.charCodeAt(i); return b; }
+async function aesEnc(key, bytes){ var iv=crypto.getRandomValues(new Uint8Array(12)); var ct=await crypto.subtle.encrypt({ name:'AES-GCM', iv:iv }, key, bytes); return { iv:iv, ct:ct }; }
+async function aesDec(key, iv, ct){ return new Uint8Array(await crypto.subtle.decrypt({ name:'AES-GCM', iv:iv }, key, ct)); }
+async function encStr(s){ var o=await aesEnc(VAULT.key, TE.encode(s)); return JSON.stringify({ iv:b64(o.iv), ct:b64(o.ct) }); }
+async function decStr(s){ var o=JSON.parse(s); return TD.decode(await aesDec(VAULT.key, unb64(o.iv), unb64(o.ct))); }
+var _storageWarned=false;
+function persistEnc(k, v){
+  VAULT.pending=VAULT.pending.then(async function(){
+    if(!VAULT.key) return;
+    try{ LS.setItem('enc:'+k, await encStr(v)); }
+    catch(e){ console.error('Encrypted save failed', e); if(!_storageWarned){ _storageWarned=true; alert('Couldn\'t save your changes — browser storage may be full.'); } }
+  });
+  return VAULT.pending;
+}
+function vaultMeta(){ try{ return JSON.parse(LS.getItem('vault')||'null'); }catch(e){ return null; } }
+function saveVaultMeta(m){ LS.setItem('vault', JSON.stringify(m)); VAULT.meta=m; }
+
+async function passKek(pass, salt, iter){
+  var base=await crypto.subtle.importKey('raw', TE.encode(pass), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name:'PBKDF2', salt:salt, iterations:iter, hash:'SHA-256' }, base, { name:'AES-GCM', length:256 }, false, ['wrapKey','unwrapKey']);
+}
+async function wrapDek(kek){ var iv=crypto.getRandomValues(new Uint8Array(12)); var w=await crypto.subtle.wrapKey('raw', VAULT.key, kek, { name:'AES-GCM', iv:iv }); return { iv:b64(iv), ct:b64(w) }; }
+async function unwrapDek(kek, o){ return crypto.subtle.unwrapKey('raw', unb64(o.ct), kek, { name:'AES-GCM', iv:unb64(o.iv) }, { name:'AES-GCM' }, true, ['encrypt','decrypt']); }
+async function passcodeEntry(pass){ var salt=crypto.getRandomValues(new Uint8Array(16)), iter=600000; return { salt:b64(salt), iter:iter, w:await wrapDek(await passKek(pass, salt, iter)) }; }
+
+// First run: create the vault and encrypt everything that's currently stored in plain text
+async function setupVault(pass){
+  VAULT.key=await crypto.subtle.generateKey({ name:'AES-GCM', length:256 }, true, ['encrypt','decrypt']);
+  var entry=await passcodeEntry(pass);
+  // PDFs older versions kept inside the payslip list move to the (encrypted) PDF store first, so the list stays small
+  var raw=LS.getItem('payslips');
+  if(raw){ try{
+    var list=JSON.parse(raw), moved=false;
+    for(var j=0;j<list.length;j++){ if(typeof list[j].pdf==='string' && list[j].pdf){ await pdfPut(list[j].id, list[j].pdf); delete list[j].pdf; list[j].hasPdf=true; moved=true; } }
+    if(moved) LS.setItem('payslips', JSON.stringify(list));
+  }catch(e){ console.warn('Couldn\'t move inline PDFs', e); } }
+  var cache={};
+  for(var i=0;i<PROTECTED.length;i++){
+    var k=PROTECTED[i], v=LS.getItem(k);
+    if(v!=null){ cache[k]=v; LS.setItem('enc:'+k, await encStr(v)); }
+  }
+  saveVaultMeta({ v:1, pass:entry, touch:null });
+  VAULT.cache=cache; VAULT.unlocked=true;
+  await encryptStoredPdfs();
+  PROTECTED.forEach(function(k){ LS.removeItem(k); }); // plain copies go only after encrypted ones are safely written
+}
+
+async function unlockWithKey(key){
+  VAULT.key=key;
+  var cache={};
+  for(var i=0;i<PROTECTED.length;i++){ var e=LS.getItem('enc:'+PROTECTED[i]); if(e!=null) cache[PROTECTED[i]]=await decStr(e); }
+  VAULT.cache=cache; VAULT.unlocked=true;
+  // Finish any interrupted first-time encryption
+  PROTECTED.forEach(function(k){ var p=LS.getItem(k); if(p!=null){ if(!(k in cache)){ cache[k]=p; persistEnc(k,p); } } });
+  await VAULT.pending;
+  PROTECTED.forEach(function(k){ LS.removeItem(k); });
+  encryptStoredPdfs();
+}
+async function unlockWithPasscode(pass){
+  var m=vaultMeta(), key;
+  var kek=await passKek(pass, unb64(m.pass.salt), m.pass.iter);
+  try{ key=await unwrapDek(kek, m.pass.w); }catch(e){ throw new Error('That passcode isn\'t right.'); }
+  VAULT.meta=m;
+  await unlockWithKey(key);
+}
+
+// Touch ID (a passkey on this Mac). The PRF extension gives a secret only Touch ID can unlock.
+var PRF_INFO=TE.encode('payslip-tracker vault v1');
+async function kekFromPrf(secret){
+  var base=await crypto.subtle.importKey('raw', secret, 'HKDF', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name:'HKDF', hash:'SHA-256', salt:new Uint8Array(32), info:PRF_INFO }, base, { name:'AES-GCM', length:256 }, false, ['wrapKey','unwrapKey']);
+}
+async function touchSecret(credId, salt){
+  var res=await navigator.credentials.get({ publicKey:{ challenge:crypto.getRandomValues(new Uint8Array(32)), allowCredentials:[{ type:'public-key', id:unb64(credId) }],
+    userVerification:'required', timeout:60000, extensions:{ prf:{ eval:{ first:unb64(salt) } } } } });
+  var r=res.getClientExtensionResults();
+  var out=r && r.prf && r.prf.results && r.prf.results.first;
+  if(!out) throw new Error('Touch ID unlock isn\'t supported by this browser.');
+  return out;
+}
+function touchAvailable(){ return !!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.create); }
+async function enrolTouchId(){
+  if(!VAULT.unlocked) throw new Error('Unlock first');
+  var salt=crypto.getRandomValues(new Uint8Array(32));
+  var cred=await navigator.credentials.create({ publicKey:{
+    rp:{ name:'Payslip Tracker' },
+    user:{ id:crypto.getRandomValues(new Uint8Array(16)), name:'Payslip Tracker', displayName:'Payslip Tracker' },
+    challenge:crypto.getRandomValues(new Uint8Array(32)),
+    pubKeyCredParams:[{ type:'public-key', alg:-7 },{ type:'public-key', alg:-257 }],
+    authenticatorSelection:{ authenticatorAttachment:'platform', userVerification:'required', residentKey:'preferred' },
+    timeout:60000, extensions:{ prf:{ eval:{ first:salt } } } } });
+  var ext=cred.getClientExtensionResults()||{};
+  if(ext.prf && ext.prf.enabled===false) throw new Error('This Mac\'s passkeys can\'t be used to encrypt data, so Touch ID unlock isn\'t available. Your passcode still works.');
+  var credId=b64(cred.rawId);
+  var secret=ext.prf && ext.prf.results && ext.prf.results.first;
+  if(!secret) secret=await touchSecret(credId, b64(salt)); // some setups only return the secret on sign-in
+  var w=await wrapDek(await kekFromPrf(secret));
+  var m=vaultMeta(); m.touch={ cred:credId, salt:b64(salt), w:w }; saveVaultMeta(m);
+}
+async function unlockWithTouchId(){
+  var m=vaultMeta();
+  var key=await unwrapDek(await kekFromPrf(await touchSecret(m.touch.cred, m.touch.salt)), m.touch.w);
+  VAULT.meta=m;
+  await unlockWithKey(key);
+}
+
+// Encrypt PDFs left in plain text by older versions (runs once, safe to repeat)
+async function encryptStoredPdfs(){
+  try{
+    var db=await pdfDb();
+    var keys=await new Promise(function(res,rej){ var q=db.transaction('pdfs').objectStore('pdfs').getAllKeys(); q.onsuccess=function(){ res(q.result||[]); }; q.onerror=function(){ rej(q.error); }; });
+    for(var i=0;i<keys.length;i++){
+      var v=await pdfRaw(keys[i]);
+      if(typeof v==='string') await pdfPut(keys[i], v);
+    }
+  }catch(e){ console.warn('PDF encryption pass failed', e); }
+}
+
+// ══ LOCK SCREEN ══
+var lastActive=Date.now();
+function lockMinutes(){ var m=parseInt(LS.getItem('lock_minutes')||'10',10); return m>0?m:10; }
+async function lockNow(){
+  try{ await VAULT.pending; }catch(e){}
+  VAULT.key=null; VAULT.cache={}; VAULT.unlocked=false; currentUser=null;
+  location.replace(location.pathname+location.search);
+}
+function showLockError(msg){ var e=$('login-error'); e.textContent=msg; e.style.display=msg?'block':'none'; }
+function setLockMode(mode){
+  ['lock-unlock','lock-setup','lock-touch-offer'].forEach(function(id){ $(id).style.display='none'; });
+  showLockError('');
+  var m=vaultMeta();
+  if(mode==='unlock'){
+    $('lock-sub').textContent='Locked — your payslips are encrypted on this device.';
+    $('lock-unlock').style.display='block';
+    var hasTouch=!!(m&&m.touch&&touchAvailable());
+    $('btn-touch').style.display=hasTouch?'':'none';
+    $('lock-or').style.display=hasTouch?'':'none';
+    setTimeout(function(){ $('lock-pass').focus(); },50);
+  } else if(mode==='setup'){
+    $('lock-sub').textContent='Choose a passcode to encrypt your payslips on this device.';
+    $('lock-setup').style.display='block';
+    setTimeout(function(){ $('setup-pass').focus(); },50);
+  } else if(mode==='touch'){
+    $('lock-sub').textContent='Your payslips are now encrypted.';
+    $('lock-touch-offer').style.display='block';
+  }
+}
+function busy(btn, on, label){ if(on){ btn._l=btn.innerHTML; btn.disabled=true; btn.textContent=label||'Working…'; } else { btn.disabled=false; if(btn._l) btn.innerHTML=btn._l; } }
+function enterApp(){
+  currentUser='me';
+  lastActive=Date.now();
+  hide('s-login'); show('s-app');
+  ensureJobs();
+  refreshViews();
+  migratePdfs().then(function(n){ if(n) renderDashboard(); }).finally(syncInit);
+}
+async function doUnlockPass(){
+  var pass=$('lock-pass').value, btn=$('btn-unlock');
+  if(!pass){ showLockError('Enter your passcode.'); return; }
+  busy(btn,true,'Unlocking…'); showLockError('');
+  try{ await unlockWithPasscode(pass); $('lock-pass').value=''; enterApp(); }
+  catch(e){ showLockError(e.message||'Couldn\'t unlock.'); $('lock-pass').select(); }
+  busy(btn,false);
+}
+async function doUnlockTouch(){
+  var btn=$('btn-touch'); busy(btn,true,'Waiting for Touch ID…'); showLockError('');
+  try{ await unlockWithTouchId(); enterApp(); }
+  catch(e){ showLockError(e.name==='NotAllowedError'?'Touch ID was cancelled — try again or use your passcode.':(e.message||'Touch ID didn\'t work — use your passcode.')); }
+  busy(btn,false);
+}
+function passcodeProblem(p, p2){
+  if(p.length<6) return 'Use at least 6 characters.';
+  if(/^(\d)\1+$/.test(p) || ['123456','1234567','12345678','password','payslips','qwerty'].indexOf(p.toLowerCase())>=0) return 'That passcode is too easy to guess.';
+  if(p!==p2) return 'The two passcodes don\'t match.';
+  return '';
+}
+async function doSetup(){
+  var p=$('setup-pass').value, p2=$('setup-pass2').value, btn=$('btn-setup');
+  var prob=passcodeProblem(p,p2); if(prob){ showLockError(prob); return; }
+  busy(btn,true,'Encrypting your payslips…'); showLockError('');
+  try{
+    await setupVault(p);
+    $('setup-pass').value=''; $('setup-pass2').value='';
+    if(touchAvailable()) setLockMode('touch'); else enterApp();
+  }catch(e){ console.error(e); showLockError('Something went wrong: '+e.message); }
+  busy(btn,false);
+}
+async function doEnrolFromOffer(){
+  var btn=$('btn-touch-setup'); busy(btn,true,'Touch the sensor…'); showLockError('');
+  try{ await enrolTouchId(); toast('👆 Touch ID unlock is on'); enterApp(); }
+  catch(e){ showLockError(e.name==='NotAllowedError'?'Touch ID setup was cancelled. You can turn it on later in Security.':e.message); }
+  busy(btn,false);
+}
+async function doForgot(){
+  var ok=prompt('Forgot your passcode? Your encrypted payslips can\'t be recovered without it.\n\nYou can start again: this wipes the tracker\'s saved payslips, jobs, goals and API key on this device. Your PDFs on the Desktop are untouched, so you can re-import them from your connected folders.\n\nType RESET to wipe and start again.');
+  if(ok!=='RESET') return;
+  Object.keys(LS).forEach(function(k){ if(k.indexOf('enc:')===0) LS.removeItem(k); });
+  PROTECTED.forEach(function(k){ LS.removeItem(k); });
+  LS.removeItem('vault');
+  try{ indexedDB.deleteDatabase('payslip-pdfs'); }catch(e){}
+  location.replace(location.pathname);
+}
+
+// ══ SECURITY SETTINGS ══
+function openSecurity(){ renderSecurity(); $('sec-modal').classList.add('open'); }
+function closeSecurity(){ $('sec-modal').classList.remove('open'); ['sec-cur','sec-new','sec-new2','sec-key'].forEach(function(id){ $(id).value=''; }); $('sec-msg').textContent=''; }
+function renderSecurity(){
+  var m=vaultMeta()||{}, key=SS.getItem('gemini_key')||'';
+  $('sec-touch-status').textContent=m.touch?'On — unlock with your fingerprint.':(touchAvailable()?'Off':'Not available in this browser');
+  $('sec-touch-btn').textContent=m.touch?'Turn off':'Set up Touch ID';
+  $('sec-touch-btn').disabled=!m.touch && !touchAvailable();
+  $('sec-lock').value=String(lockMinutes());
+  $('sec-key-status').textContent=key?'Saved (ending …'+key.slice(-4)+'), stored encrypted':'No key saved';
+}
+function secMsg(t, bad){ var e=$('sec-msg'); e.textContent=t; e.style.color=bad?'var(--red)':'var(--green)'; }
+async function secChangePass(){
+  var cur=$('sec-cur').value, p=$('sec-new').value, p2=$('sec-new2').value;
+  var m=vaultMeta();
+  try{ await unwrapDek(await passKek(cur, unb64(m.pass.salt), m.pass.iter), m.pass.w); }catch(e){ secMsg('Your current passcode isn\'t right.', true); return; }
+  var prob=passcodeProblem(p,p2); if(prob){ secMsg(prob, true); return; }
+  m.pass=await passcodeEntry(p); saveVaultMeta(m);
+  ['sec-cur','sec-new','sec-new2'].forEach(function(id){ $(id).value=''; });
+  secMsg('Passcode changed.');
+}
+async function secTouch(){
+  var m=vaultMeta();
+  if(m.touch){
+    if(!confirm('Turn off Touch ID unlock? You\'ll unlock with your passcode only.')) return;
+    m.touch=null; saveVaultMeta(m); renderSecurity();
+    secMsg('Touch ID unlock turned off. You can also delete the "Payslip Tracker" passkey in your Mac\'s Passwords app.');
+    return;
+  }
+  var btn=$('sec-touch-btn'); busy(btn,true,'Touch the sensor…');
+  try{ await enrolTouchId(); secMsg('Touch ID unlock is on.'); }
+  catch(e){ secMsg(e.name==='NotAllowedError'?'Touch ID setup was cancelled.':e.message, true); }
+  busy(btn,false); renderSecurity();
+}
+function secSaveKey(){
+  var k=$('sec-key').value.trim();
+  if(!k){ secMsg('Paste your new key first.', true); return; }
+  SS.setItem('gemini_key', k); $('sec-key').value=''; renderSecurity(); secMsg('API key saved (encrypted).');
+}
+
+// Auto-lock after a stretch of no activity (also covers leaving the tab)
+['pointerdown','pointermove','keydown','wheel','touchstart','scroll'].forEach(function(ev){ window.addEventListener(ev, function(){ lastActive=Date.now(); }, { passive:true, capture:true }); });
+function checkAutoLock(){ if(VAULT.unlocked && Date.now()-lastActive > lockMinutes()*60000) lockNow(); }
+setInterval(checkAutoLock, 15000);
+document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='visible') checkAutoLock(); });
+
+
 // ══ HELPERS ══
-var USERS = { admin: 'payslips' };
 var currentUser = null;
 var queue = [];
 
@@ -794,8 +1146,8 @@ function $(id){ return document.getElementById(id); }
 function show(id){ $(id).classList.add('active'); }
 function hide(id){ $(id).classList.remove('active'); }
 
-function loadPayslips(){ try{ return JSON.parse(localStorage.getItem('payslips')||'[]'); }catch(e){ return []; } }
-function savePayslips(list){ localStorage.setItem('payslips', JSON.stringify(list)); }
+function loadPayslips(){ try{ return JSON.parse(SS.getItem('payslips')||'[]'); }catch(e){ return []; } }
+function savePayslips(list){ SS.setItem('payslips', JSON.stringify(list)); }
 
 // ══ PDF STORAGE ══
 // Payslip details stay in localStorage (small); the PDFs themselves live in IndexedDB,
@@ -808,17 +1160,27 @@ function pdfDb(){
     r.onerror=function(){ rej(r.error); };
   });
 }
-function pdfPut(id, dataUrl){
-  return pdfDb().then(function(db){ return new Promise(function(res,rej){
-    var tx=db.transaction('pdfs','readwrite'); tx.objectStore('pdfs').put(dataUrl, id);
-    tx.oncomplete=function(){ res(); }; tx.onerror=function(){ rej(tx.error); }; tx.onabort=function(){ rej(tx.error); };
-  }); });
-}
-function pdfGet(id){
+function pdfRaw(id){
   return pdfDb().then(function(db){ return new Promise(function(res,rej){
     var q=db.transaction('pdfs').objectStore('pdfs').get(id);
-    q.onsuccess=function(){ res(q.result||null); }; q.onerror=function(){ rej(q.error); };
+    q.onsuccess=function(){ res(q.result==null?null:q.result); }; q.onerror=function(){ rej(q.error); };
   }); });
+}
+async function pdfPut(id, dataUrl){
+  if(!VAULT.key) throw new Error('Tracker is locked');
+  var o=await aesEnc(VAULT.key, TE.encode(dataUrl));
+  var db=await pdfDb();
+  return new Promise(function(res,rej){
+    var tx=db.transaction('pdfs','readwrite'); tx.objectStore('pdfs').put({ v:1, iv:o.iv, ct:o.ct }, id);
+    tx.oncomplete=function(){ res(); }; tx.onerror=function(){ rej(tx.error); }; tx.onabort=function(){ rej(tx.error); };
+  });
+}
+async function pdfGet(id){
+  var v=await pdfRaw(id);
+  if(v==null) return null;
+  if(typeof v==='string') return v; // older, not-yet-encrypted copy
+  if(!VAULT.key) return null;
+  return TD.decode(await aesDec(VAULT.key, v.iv, v.ct));
 }
 function pdfDel(id){
   return pdfDb().then(function(db){ return new Promise(function(res){
@@ -852,38 +1214,12 @@ function getFY(d){ if(!d) return null; var dt=new Date(d); if(isNaN(dt)) return 
 function fyLabel(fy){ return 'FY'+fy+' (Jul '+(fy-1)+'–Jun '+fy+')'; }
 function currentFY(){ var n=new Date(); return n.getMonth()>=6?n.getFullYear()+1:n.getFullYear(); }
 
-// ══ AUTH ══
-function doLogin(){
-  var u=$('login-user').value.trim();
-  var p=$('login-pass').value;
-  if(USERS[u] && USERS[u]===p){
-    currentUser=u;
-    $('login-error').style.display='none';
-    hide('s-login');
-    show('s-app');
-    $('topbar-user').textContent=u;
-    ensureJobs();
-    refreshViews();
-    migratePdfs().then(function(n){ if(n) renderDashboard(); }).finally(syncInit);
-  } else {
-    $('login-error').style.display='block';
-  }
-}
-
-function doLogout(){
-  currentUser=null;
-  hide('s-app');
-  show('s-login');
-  $('login-user').value='';
-  $('login-pass').value='';
-}
-
 // ══ API KEY ══
 function getApiKey(){
-  var key=localStorage.getItem('gemini_key');
+  var key=SS.getItem('gemini_key');
   if(!key){
     key=prompt('Enter your Google Gemini API key:\n(Get one free at aistudio.google.com → Get API key)\nIt will be saved in your browser.');
-    if(key && key.trim()) localStorage.setItem('gemini_key', key.trim());
+    if(key && key.trim()) SS.setItem('gemini_key', key.trim());
   }
   return key ? key.trim() : null;
 }
@@ -891,7 +1227,7 @@ function getApiKey(){
 function changeApiKey(){
   var key=prompt('Enter your Google Gemini API key:');
   if(key && key.trim()){
-    localStorage.setItem('gemini_key', key.trim());
+    SS.setItem('gemini_key', key.trim());
     alert('API key saved!');
   }
 }
@@ -918,8 +1254,8 @@ var JOB_COLORS=['#007aff','#ff9500','#34c759','#af52de','#30b0c7','#ff2d55','#58
 var NO_JOB={ id:'none', name:'No job', color:'#8e8e93', employers:[] };
 
 function normEmp(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,' '); }
-function loadJobs(){ try{ var j=JSON.parse(localStorage.getItem('jobs')||'[]'); return Array.isArray(j)?j:[]; }catch(e){ return []; } }
-function saveJobs(jobs){ localStorage.setItem('jobs', JSON.stringify(jobs)); }
+function loadJobs(){ try{ var j=JSON.parse(SS.getItem('jobs')||'[]'); return Array.isArray(j)?j:[]; }catch(e){ return []; } }
+function saveJobs(jobs){ SS.setItem('jobs', JSON.stringify(jobs)); }
 function newJobId(){ return 'j_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 
 function prettyJobName(emp){
@@ -965,12 +1301,12 @@ function linkEmployerToJob(employer, jobId){
   if(!job || jobs.some(function(j){ return j.employers.indexOf(e)>=0; })) return;
   job.employers.push(e); saveJobs(jobs);
 }
-function loadFolderJobs(){ try{ return JSON.parse(localStorage.getItem('folder_jobs')||'{}')||{}; }catch(e){ return {}; } }
-function saveFolderJobs(m){ try{ localStorage.setItem('folder_jobs', JSON.stringify(m)); }catch(e){} }
+function loadFolderJobs(){ try{ return JSON.parse(SS.getItem('folder_jobs')||'{}')||{}; }catch(e){ return {}; } }
+function saveFolderJobs(m){ try{ SS.setItem('folder_jobs', JSON.stringify(m)); }catch(e){} }
 
 // ══ FILTERS ══
-var UI=(function(){ try{ var u=JSON.parse(localStorage.getItem('ui_prefs')||'{}')||{}; return { job:u.job||'all', fy:u.fy||null, search:'' }; }catch(e){ return { job:'all', fy:null, search:'' }; } })();
-function saveUI(){ try{ localStorage.setItem('ui_prefs', JSON.stringify({ job:UI.job, fy:UI.fy })); }catch(e){} }
+var UI=(function(){ try{ var u=JSON.parse(SS.getItem('ui_prefs')||'{}')||{}; return { job:u.job||'all', fy:u.fy||null, search:'' }; }catch(e){ return { job:'all', fy:null, search:'' }; } })();
+function saveUI(){ try{ SS.setItem('ui_prefs', JSON.stringify({ job:UI.job, fy:UI.fy })); }catch(e){} }
 function fyValue(){ return UI.fy==null ? String(currentFY()) : String(UI.fy); }
 function fyLong(fy){ return 'FY '+(fy-1)+'–'+String(fy).slice(2); }
 function inFY(p, fy){ return fy==='all' || getFY(p.date)===parseInt(fy,10); }
@@ -1399,7 +1735,7 @@ function buildCard(item){
   var cls={ extracting:'s-extracting', review:'s-review', duplicate:'s-duplicate', saved:'s-saved', error:'s-error' };
   var header='<div class="queue-header">'+
     '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'+
-    '<span class="queue-filename">'+item.fileName+'</span>'+
+    '<span class="queue-filename">'+esc(item.fileName)+'</span>'+
     '<span class="q-status '+cls[item.status]+'">'+labels[item.status]+'</span>'+
     '<button class="queue-remove" data-remove="'+item.id+'"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'+
     '</div>';
@@ -1407,14 +1743,14 @@ function buildCard(item){
   if(item.status==='extracting'){
     body='<div class="queue-body"><div class="q-spinner"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Extracting data — this takes a few seconds…</div></div>';
   } else if(item.status==='saved'){
-    body='<div class="queue-body"><div class="saved-msg"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Saved as <strong>'+(item.data.period||'payslip')+'</strong></div></div>';
+    body='<div class="queue-body"><div class="saved-msg"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Saved as <strong>'+esc(item.data.period||'payslip')+'</strong></div></div>';
   } else if(item.status==='error'){
-    body='<div class="queue-body"><div class="error-msg">⚠ '+(item.errorMsg||'Extraction failed')+' — fill in fields manually.</div>'+miniForm(item)+'</div>';
+    body='<div class="queue-body"><div class="error-msg">⚠ '+esc(item.errorMsg||'Extraction failed')+' — fill in fields manually.</div>'+miniForm(item)+'</div>';
   } else {
     var dupWarn='';
     if(item.status==='duplicate'){
       dupWarn='<div class="dup-warn"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+
-        '<span>A payslip for <strong>'+(item.dupMatch&&item.dupMatch.period||item.data.period||'this period')+'</strong> already exists. You can still save it or remove it.</span></div>';
+        '<span>A payslip for <strong>'+esc(item.dupMatch&&item.dupMatch.period||item.data.period||'this period')+'</strong> already exists. You can still save it or remove it.</span></div>';
     }
     if(item.mismatch){
       dupWarn+='<div class="dup-warn"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>'+item.mismatch+'</span></div>';
@@ -1426,12 +1762,12 @@ function buildCard(item){
 
 function miniForm(item){
   var d=item.data;
-  function inp(key, ph, type){ type=type||'text'; return '<input class="mini-input" type="'+type+'" id="'+item.id+'_'+key+'" placeholder="'+ph+'" value="'+(d[key]||'')+'" data-id="'+item.id+'" data-key="'+key+'"'+(type==='number'?' step="0.01" min="0"':'')+'>'; }
+  function inp(key, ph, type){ type=type||'text'; return '<input class="mini-input" type="'+type+'" id="'+item.id+'_'+key+'" placeholder="'+ph+'" value="'+esc(d[key]||'')+'" data-id="'+item.id+'" data-key="'+key+'"'+(type==='number'?' step="0.01" min="0"':'')+'>'; }
   function rateRow(k, label, color){
     return '<div class="rate-lbl" style="color:'+color+';">'+label+'</div>'+
-      '<div class="mini-field"><input class="mini-input rateInp" type="number" id="'+item.id+'_'+k+'_hrs" placeholder="0" step="0.5" min="0" value="'+(d[k+'_hrs']||'')+'" data-id="'+item.id+'" data-type="'+k+'" data-f="hrs"></div>'+
-      '<div class="mini-field"><div class="dollar-mini"><span class="ds">$</span><input class="mini-input rateInp" type="number" id="'+item.id+'_'+k+'_rate" placeholder="0.00" step="0.01" min="0" value="'+(d[k+'_rate']||'')+'" data-id="'+item.id+'" data-type="'+k+'" data-f="rate"></div></div>'+
-      '<div class="mini-field"><div class="dollar-mini"><span class="ds">$</span><input class="mini-input rateInp" type="number" id="'+item.id+'_'+k+'_amt" placeholder="0.00" step="0.01" min="0" value="'+(d[k+'_amt']||'')+'" data-id="'+item.id+'" data-type="'+k+'" data-f="amt"></div></div>';
+      '<div class="mini-field"><input class="mini-input rateInp" type="number" id="'+item.id+'_'+k+'_hrs" placeholder="0" step="0.5" min="0" value="'+esc(d[k+'_hrs']||'')+'" data-id="'+item.id+'" data-type="'+k+'" data-f="hrs"></div>'+
+      '<div class="mini-field"><div class="dollar-mini"><span class="ds">$</span><input class="mini-input rateInp" type="number" id="'+item.id+'_'+k+'_rate" placeholder="0.00" step="0.01" min="0" value="'+esc(d[k+'_rate']||'')+'" data-id="'+item.id+'" data-type="'+k+'" data-f="rate"></div></div>'+
+      '<div class="mini-field"><div class="dollar-mini"><span class="ds">$</span><input class="mini-input rateInp" type="number" id="'+item.id+'_'+k+'_amt" placeholder="0.00" step="0.01" min="0" value="'+esc(d[k+'_amt']||'')+'" data-id="'+item.id+'" data-type="'+k+'" data-f="amt"></div></div>';
   }
   var saveBtn=item.status==='duplicate'
     ? '<button class="btn-sm btn-sm-warn" data-save="'+item.id+'">Save anyway</button>'
@@ -1548,8 +1884,8 @@ async function callGemini(apiKey, base64Data){
       var timer=setTimeout(function(){ ctl.abort(); }, 60000);
       var response;
       try{
-        response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+apiKey,{
-          method:'POST', headers:{'Content-Type':'application/json'}, signal:ctl.signal,
+        response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{
+          method:'POST', headers:{'Content-Type':'application/json','x-goog-api-key':apiKey}, signal:ctl.signal, referrerPolicy:'no-referrer',
           body:JSON.stringify({
             contents:[{parts:[{inline_data:{mime_type:'application/pdf',data:base64Data}},{text:EXTRACT_PROMPT}]}],
             generationConfig:{temperature:0,maxOutputTokens:8192,responseMimeType:'application/json'}
@@ -1677,7 +2013,7 @@ function closePdfModal(){ $('pdf-modal').classList.remove('open'); $('pdf-frame'
 
 // ══ FOLDER SYNC ══
 // Reads payslip PDFs straight from folders on your computer (Chrome/Edge only).
-// Folder access is stored in IndexedDB; which files have been handled is stored in localStorage.
+// Folder access is stored in IndexedDB; which files have been handled is stored in SS.
 var SYNC={ folders:[], state:{}, busy:false, pending:{}, backlog:{}, importedThisSession:0, savedThisSession:0, lastChecked:null, started:false };
 var SYNC_SUPPORTED=('showDirectoryPicker' in window) && ('indexedDB' in window);
 
@@ -1706,10 +2042,10 @@ function idbWrite(fn){
 function idbPut(rec){ return idbWrite(function(st){ st.put({ id:rec.id, name:rec.name, handle:rec.handle, initialised:!!rec.initialised, addedAt:rec.addedAt }); }); }
 function idbDel(id){ return idbWrite(function(st){ st.delete(id); }); }
 
-function loadSeen(){ try{ return JSON.parse(localStorage.getItem('sync_seen')||'{}'); }catch(e){ return {}; } }
-function saveSeen(s){ try{ localStorage.setItem('sync_seen', JSON.stringify(s)); }catch(e){} }
+function loadSeen(){ try{ return JSON.parse(SS.getItem('sync_seen')||'{}'); }catch(e){ return {}; } }
+function saveSeen(s){ try{ SS.setItem('sync_seen', JSON.stringify(s)); }catch(e){} }
 function markSeen(key, v){ var s=loadSeen(); s[key]=v; saveSeen(s); }
-function syncAutoSaveOn(){ return localStorage.getItem('sync_autosave')!=='0'; }
+function syncAutoSaveOn(){ return SS.getItem('sync_autosave')!=='0'; }
 
 async function listPayslipPdfs(dir, prefix, out, depth){
   for await (var entry of dir.entries()){
@@ -1975,8 +2311,8 @@ function confetti(){
 function todayIso(){ var d=new Date(); return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
 function isoOf(d){ return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
 function addDays(d,n){ var x=new Date(d); x.setDate(x.getDate()+n); return x; }
-function loadList(key){ try{ var v=JSON.parse(localStorage.getItem(key)||'[]'); return Array.isArray(v)?v:[]; }catch(e){ return []; } }
-function saveList(key, v){ localStorage.setItem(key, JSON.stringify(v)); }
+function loadList(key){ try{ var v=JSON.parse(SS.getItem(key)||'[]'); return Array.isArray(v)?v:[]; }catch(e){ return []; } }
+function saveList(key, v){ SS.setItem(key, JSON.stringify(v)); }
 function byDateDesc(a,b){ return (a.date||'')<(b.date||'')?1:-1; }
 function jobOptionsHtml(sel, withAll){
   return (withAll?'<option value="all"'+(sel==='all'?' selected':'')+'>All jobs</option>':'')+
@@ -2119,8 +2455,8 @@ function onGoalsClick(e){
 
 // ══ FORECASTER ══
 var PAY_TYPES={ mf:'Mon–Fri', sat:'Saturday', sun:'Sunday', ph:'Public holiday' };
-var FC=(function(){ try{ var d=JSON.parse(localStorage.getItem('fc_draft')||'null'); if(d&&Array.isArray(d.shifts)) return d; }catch(e){} return { job:null, shifts:[] }; })();
-function saveFcDraft(){ try{ localStorage.setItem('fc_draft', JSON.stringify(FC)); }catch(e){} }
+var FC={ job:null, shifts:[], _loaded:false };
+function saveFcDraft(){ try{ SS.setItem('fc_draft', JSON.stringify(FC)); }catch(e){} }
 function jobPayslips(jobId){ var jobs=loadJobs(); return loadPayslips().filter(function(p){ return p.date && jobIdFor(p,jobs)===jobId; }).sort(byDateDesc); }
 
 function latestRates(jobId){
@@ -2158,6 +2494,7 @@ function forecastCalc(){
 }
 
 function renderForecast(){
+  if(!FC._loaded){ try{ var d=JSON.parse(SS.getItem('fc_draft')||'null'); if(d&&Array.isArray(d.shifts)){ FC.job=d.job; FC.shifts=d.shifts; } }catch(e){} FC._loaded=true; }
   var jobs=ensureJobs();
   if(!jobs.length){ $('fc-result').innerHTML='<div class="empty-state"><strong>No jobs yet</strong>Add some payslips first.</div>'; return; }
   if(!FC.job || !jobs.some(function(j){ return j.id===FC.job; })){ FC.job=(UI.job!=='all'&&jobs.some(function(j){ return j.id===UI.job; }))?UI.job:jobs[0].id; }
@@ -2257,7 +2594,7 @@ async function callGeminiText(history){
   for(var i=0;i<GEMINI_MODELS.length;i++){
     var ctl=new AbortController(), timer=setTimeout(function(){ ctl.abort(); }, 45000);
     try{
-      var r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+GEMINI_MODELS[i]+':generateContent?key='+key,{ method:'POST', headers:{'Content-Type':'application/json'}, signal:ctl.signal,
+      var r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+GEMINI_MODELS[i]+':generateContent',{ method:'POST', headers:{'Content-Type':'application/json','x-goog-api-key':key}, signal:ctl.signal, referrerPolicy:'no-referrer',
         body:JSON.stringify({ systemInstruction:{ parts:[{ text:CHAT_SYSTEM }] }, contents:contents, generationConfig:{ temperature:.2, maxOutputTokens:2048 } }) });
       clearTimeout(timer);
       var j=await r.json();
@@ -2369,11 +2706,11 @@ function downloadBlob(blob, name){
   var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
 }
-function loadScript(src){ return new Promise(function(res,rej){ var s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=function(){ rej(new Error('Couldn\'t load '+src)); }; document.head.appendChild(s); }); }
+function loadScript(src, sri){ return new Promise(function(res,rej){ var s=document.createElement('script'); s.src=src; if(sri){ s.integrity=sri; s.crossOrigin='anonymous'; s.referrerPolicy='no-referrer'; } s.onload=res; s.onerror=function(){ rej(new Error('Couldn\'t load '+src)); }; document.head.appendChild(s); }); }
 async function taxZip(){
   var btn=$('tax-zip'); btn.disabled=true; var label=btn.innerHTML; btn.textContent='Zipping…';
   try{
-    if(typeof JSZip==='undefined') await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+    if(typeof JSZip==='undefined') await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js','sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG');
     var zip=new JSZip(), rows=taxRows(), used={}, n=0;
     for(var i=0;i<rows.length;i++){
       var p=rows[i].p, data=p.pdf||await pdfGet(p.id); if(!data) continue;
@@ -2568,12 +2905,25 @@ function renderWrappedBanner(){
 // ══ WIRE UP ALL EVENTS ══
 document.addEventListener('DOMContentLoaded', function(){
   // Login
-  $('login-btn').addEventListener('click', doLogin);
-  $('login-pass').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+  setLockMode(vaultMeta()?'unlock':'setup');
+  $('btn-unlock').addEventListener('click', doUnlockPass);
+  $('lock-pass').addEventListener('keydown', function(e){ if(e.key==='Enter') doUnlockPass(); });
+  $('btn-touch').addEventListener('click', doUnlockTouch);
+  $('btn-forgot').addEventListener('click', doForgot);
+  $('btn-setup').addEventListener('click', doSetup);
+  $('setup-pass2').addEventListener('keydown', function(e){ if(e.key==='Enter') doSetup(); });
+  $('btn-touch-setup').addEventListener('click', doEnrolFromOffer);
+  $('btn-touch-skip').addEventListener('click', enterApp);
 
   // Topbar
-  $('btn-logout').addEventListener('click', doLogout);
-  $('btn-apikey').addEventListener('click', changeApiKey);
+  $('btn-lock').addEventListener('click', lockNow);
+  $('btn-security').addEventListener('click', openSecurity);
+  $('sec-close').addEventListener('click', closeSecurity);
+  $('sec-modal').addEventListener('click', function(e){ if(e.target===this) closeSecurity(); });
+  $('sec-pass-btn').addEventListener('click', secChangePass);
+  $('sec-touch-btn').addEventListener('click', secTouch);
+  $('sec-key-btn').addEventListener('click', secSaveKey);
+  $('sec-lock').addEventListener('change', function(){ LS.setItem('lock_minutes', this.value); secMsg('Auto-lock set to '+this.options[this.selectedIndex].text+'.'); });
 
   // Tabs
   document.querySelectorAll('.tab').forEach(function(tab){
@@ -2620,7 +2970,7 @@ document.addEventListener('DOMContentLoaded', function(){
   // Folder sync
   $('btn-add-folder').addEventListener('click', connectFolder);
   $('btn-sync-now').addEventListener('click', function(){ scanFolders({ interactive:true }); });
-  $('sync-autosave').addEventListener('change', function(){ localStorage.setItem('sync_autosave', this.checked?'1':'0'); });
+  $('sync-autosave').addEventListener('change', function(){ SS.setItem('sync_autosave', this.checked?'1':'0'); });
   $('sync-card').addEventListener('click', onSyncClick);
   $('sync-card').addEventListener('change', function(e){
     var s=e.target.closest('[data-folderjob]'); if(!s) return;
