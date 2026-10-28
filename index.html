@@ -330,6 +330,52 @@ function hide(id){ $(id).classList.remove('active'); }
 function loadPayslips(){ try{ return JSON.parse(localStorage.getItem('payslips')||'[]'); }catch(e){ return []; } }
 function savePayslips(list){ localStorage.setItem('payslips', JSON.stringify(list)); }
 
+// ══ PDF STORAGE ══
+// Payslip details stay in localStorage (small); the PDFs themselves live in IndexedDB,
+// which can use a share of the Mac's free disk space instead of the ~5 MB localStorage cap.
+function pdfDb(){
+  return new Promise(function(res,rej){
+    var r=indexedDB.open('payslip-pdfs',1);
+    r.onupgradeneeded=function(){ r.result.createObjectStore('pdfs'); };
+    r.onsuccess=function(){ res(r.result); };
+    r.onerror=function(){ rej(r.error); };
+  });
+}
+function pdfPut(id, dataUrl){
+  return pdfDb().then(function(db){ return new Promise(function(res,rej){
+    var tx=db.transaction('pdfs','readwrite'); tx.objectStore('pdfs').put(dataUrl, id);
+    tx.oncomplete=function(){ res(); }; tx.onerror=function(){ rej(tx.error); }; tx.onabort=function(){ rej(tx.error); };
+  }); });
+}
+function pdfGet(id){
+  return pdfDb().then(function(db){ return new Promise(function(res,rej){
+    var q=db.transaction('pdfs').objectStore('pdfs').get(id);
+    q.onsuccess=function(){ res(q.result||null); }; q.onerror=function(){ rej(q.error); };
+  }); });
+}
+function pdfDel(id){
+  return pdfDb().then(function(db){ return new Promise(function(res){
+    var tx=db.transaction('pdfs','readwrite'); tx.objectStore('pdfs').delete(id);
+    tx.oncomplete=function(){ res(); }; tx.onerror=function(){ res(); };
+  }); }).catch(function(){});
+}
+
+// One-off move of PDFs saved by older versions (stored inside localStorage) into IndexedDB
+async function migratePdfs(){
+  try{ if(navigator.storage && navigator.storage.persist) await navigator.storage.persist(); }catch(e){} // ask Chrome not to clear it when space is low
+  var moving=loadPayslips().filter(function(p){ return typeof p.pdf==='string' && p.pdf; });
+  if(!moving.length) return 0;
+  var moved={};
+  for(var i=0;i<moving.length;i++){
+    try{ await pdfPut(moving[i].id, moving[i].pdf); moved[moving[i].id]=true; }
+    catch(e){ console.warn('Couldn\'t move PDF for '+moving[i].period, e); }
+  }
+  var list=loadPayslips();
+  list.forEach(function(p){ if(moved[p.id]){ delete p.pdf; p.hasPdf=true; } });
+  savePayslips(list);
+  return Object.keys(moved).length;
+}
+
 function fmt(n){ if(!n && n!==0) return '—'; return '$'+Number(n).toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function totalGrossOf(p){ var r=p.rates||{}; var f=['mf','sat','sun','ph'].reduce(function(s,k){ return s+(parseFloat(r[k+'_amt'])||0); },0); return f>0?f:(parseFloat(p.gross)||0); }
 function totalHoursOf(p){ var r=p.rates||{}; return ['mf','sat','sun','ph'].reduce(function(s,k){ return s+(parseFloat(r[k+'_hrs'])||0); },0); }
@@ -359,7 +405,7 @@ function doLogin(){
     $('topbar-user').textContent=u;
     populateFySelect();
     renderDashboard();
-    syncInit();
+    migratePdfs().then(function(n){ if(n) renderDashboard(); }).finally(syncInit);
   } else {
     $('login-error').style.display='block';
   }
@@ -437,7 +483,7 @@ function renderDashboard(){
     return '<div class="payslip-row">'+
       '<div class="payslip-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>'+
       '<div class="payslip-info"><div class="payslip-period">'+(p.period||'Unnamed')+'</div><div class="payslip-employer">'+(p.employer||'')+'</div>'+(parts?'<div class="payslip-meta">'+parts+' · '+hrs.toFixed(1)+'h total</div>':'')+
-      (p.pdf?'<button class="btn-view-pdf" data-pid="'+p.id+'">View PDF</button>':'')+
+      ((p.pdf||p.hasPdf)?'<button class="btn-view-pdf" data-pid="'+p.id+'">View PDF</button>':'')+
       '</div>'+
       '<div class="payslip-amounts"><div class="payslip-gross">'+fmt(totalGrossOf(p))+'</div><div class="payslip-net">Net '+fmt(p.net)+'</div></div>'+
       '<div class="payslip-date">'+(p.date||'')+'</div>'+
@@ -461,6 +507,7 @@ function statCard(label, value, sub){
 function deletePayslip(id){
   if(!confirm('Delete this payslip? This cannot be undone.')) return;
   savePayslips(loadPayslips().filter(function(p){ return p.id!==id; }));
+  pdfDel(id);
   populateFySelect(); renderDashboard();
 }
 
@@ -758,10 +805,20 @@ function saveQueueItem(id){
   if(!(item.data.period||'').trim()){ alert('Please enter a pay period before saving.'); return; }
   var rates={};
   ['mf','sat','sun','ph'].forEach(function(k){ rates[k+'_hrs']=item.data[k+'_hrs']||'0'; rates[k+'_rate']=item.data[k+'_rate']||'0'; rates[k+'_amt']=item.data[k+'_amt']||'0'; });
-  var entry={ id:Date.now().toString()+Math.random().toString(36).slice(2,6), period:item.data.period, employer:item.data.employer||'', net:item.data.net||'', gross:item.data.gross||'', date:item.data.date||'', tax:item.data.tax||'', rates:rates, savedAt:new Date().toISOString(), pdf:item.dataUrl||null, fileName:item.fileName };
+  var entry={ id:Date.now().toString()+Math.random().toString(36).slice(2,6), period:item.data.period, employer:item.data.employer||'', net:item.data.net||'', gross:item.data.gross||'', date:item.data.date||'', tax:item.data.tax||'', rates:rates, savedAt:new Date().toISOString(), hasPdf:!!item.dataUrl, fileName:item.fileName };
   var list=loadPayslips(); list.push(entry);
   try{ savePayslips(list); }
   catch(e){ alert('Couldn\'t save '+item.fileName+' — your browser storage for this site is full.'); return; }
+  if(item.dataUrl){
+    var pdfData=item.dataUrl, entryId=entry.id;
+    pdfPut(entryId, pdfData).catch(function(err){
+      console.warn('IndexedDB save failed, keeping PDF inline', err);
+      var l=loadPayslips(), e=l.find(function(x){ return x.id===entryId; });
+      if(!e) return;
+      e.pdf=pdfData;
+      try{ savePayslips(l); }catch(_){ delete e.pdf; e.hasPdf=false; savePayslips(l); alert('Saved the details for '+item.fileName+', but there was no room to keep its PDF.'); renderDashboard(); }
+    });
+  }
   if(item.syncKey) markSeen(item.syncKey,'saved');
   item.status='saved';
   renderQueue();
@@ -787,11 +844,14 @@ function clearQueue(){
 }
 
 // ══ PDF VIEWER ══
-function openPdf(id){
+async function openPdf(id){
   var p=loadPayslips().find(function(x){ return x.id===id; });
-  if(!p||!p.pdf) return;
+  if(!p) return;
+  var data=p.pdf||null;
+  if(!data){ try{ data=await pdfGet(id); }catch(e){ data=null; } }
+  if(!data){ alert('The PDF for this payslip couldn\'t be found.'); return; }
   $('modal-title').textContent=(p.period||'Payslip')+(p.employer?' — '+p.employer:'');
-  $('pdf-frame').src=p.pdf;
+  $('pdf-frame').src=data;
   $('pdf-modal').classList.add('open');
 }
 function closePdfModal(){ $('pdf-modal').classList.remove('open'); $('pdf-frame').src=''; }
