@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-uaNshlKbpnnnmsxHso6ZPreKvLA6ZhyZ7Ns1AJ4MPH4=' https://cdn.jsdelivr.net/npm/chart.js@4.4.0/ https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/; style-src 'unsafe-inline'; img-src data: blob:; connect-src https://generativelanguage.googleapis.com; frame-src data: blob:; object-src data: blob:; base-uri 'none'; form-action 'none'"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-zGZdXD7Bl0fok41QuTECfaSewsW2NIL0eEO80gBAOBk=' https://cdn.jsdelivr.net/npm/chart.js@4.4.0/ https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/; style-src 'unsafe-inline'; img-src data: blob:; connect-src https://generativelanguage.googleapis.com; frame-src data: blob:; object-src data: blob:; base-uri 'none'; form-action 'none'"/>
 <meta name="referrer" content="no-referrer"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="color-scheme" content="light dark"/>
@@ -494,7 +494,7 @@ select.mini-input{appearance:none;-webkit-appearance:none;cursor:pointer}
 
 /* PRINT: tax pack only */
 @media print{
-  body::before,.topbar,.page-head .filters,.no-print,#tab-dashboard,#tab-analytics,#tab-goals,#tab-forecast,#tab-ask,#tab-jobs,#tab-upload,.sync-banner,#wrapped,.toast{display:none!important}
+  body::before,.topbar,.page-head .filters,.no-print,#tab-dashboard,#tab-analytics,#tab-goals,#tab-forecast,#tab-ask,#tab-deductions,#tab-jobs,#tab-upload,.sync-banner,#wrapped,.toast{display:none!important}
   html,body{background:#fff!important;color:#000}
   #tab-tax{display:block!important}
   .glass{background:#fff!important;box-shadow:none!important;border:1px solid #ddd!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
@@ -517,6 +517,20 @@ select.mini-input{appearance:none;-webkit-appearance:none;cursor:pointer}
 .sec-line{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;color:var(--text2);flex-wrap:wrap}
 .sec-line .input{flex:1;min-width:200px}
 .sec-msg{font-size:13px;font-weight:600;margin-top:14px;min-height:18px}
+
+/* DEDUCTIONS */
+.exp-cats{padding:14px 18px;margin-top:12px;display:flex;flex-direction:column;gap:10px}
+.exp-cat-row{display:grid;grid-template-columns:minmax(150px,240px) 1fr 90px;gap:12px;align-items:center;font-size:13px}
+.exp-cat-row strong{text-align:right;font-variant-numeric:tabular-nums}
+.exp-cat-row .share{margin-top:0}
+.rules-card{padding:16px 18px;margin-top:12px;font-size:13px}
+.rules-card ol{margin:6px 0 8px 20px;line-height:1.6}
+.exp-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;background:var(--fill);flex-shrink:0}
+.exp-chip{font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--fill);color:var(--text2)}
+.exp-chip.warn{background:var(--orange-soft);color:var(--orange)}
+.cat-tip{display:flex;gap:8px;font-size:12px;color:var(--text2);background:var(--fill2);border-radius:10px;padding:9px 12px;margin-bottom:12px;line-height:1.45}
+.claim-val{font-size:18px;font-weight:700;padding:5px 2px;font-variant-numeric:tabular-nums;color:var(--green)}
+@media(max-width:620px){ .exp-cat-row{grid-template-columns:1fr 70px} .exp-cat-row .share{display:none} }
 </style>
 </head>
 <body>
@@ -567,6 +581,7 @@ select.mini-input{appearance:none;-webkit-appearance:none;cursor:pointer}
       <button class="tab" data-tab="forecast">Forecast</button>
       <button class="tab" data-tab="ask">Ask</button>
       <button class="tab" data-tab="tax">Tax time</button>
+      <button class="tab" data-tab="deductions">Deductions</button>
       <button class="tab" data-tab="jobs">Jobs</button>
       <button class="tab" data-tab="upload">Add payslips</button>
     </div>
@@ -750,6 +765,27 @@ select.mini-input{appearance:none;-webkit-appearance:none;cursor:pointer}
       <div id="tax-pack"></div>
     </div>
 
+
+    <!-- DEDUCTIONS -->
+    <div id="tab-deductions" class="tab-panel">
+      <div class="page-head">
+        <div>
+          <div class="page-title">Deductions</div>
+          <div class="page-sub">Keep receipts and invoices for things you can claim at tax time.</div>
+        </div>
+        <div class="filters"><select class="select" id="exp-fy" aria-label="Financial year"></select></div>
+      </div>
+      <div class="dropzone glass" id="exp-drop">
+        <input type="file" accept="application/pdf,image/*,.heic,.heif" id="exp-file-input" multiple/>
+        <div class="dropzone-icon"><svg viewBox="0 0 24 24"><path d="M4 2v20l3-2 3 2 3-2 3 2 3-2 1 .7V2l-1 .7-3-2-3 2-3-2-3 2-3-2z"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></svg></div>
+        <h3>Drop receipts or invoices here</h3>
+        <p>PDFs or photos (JPG, PNG, HEIC) — or click to browse. They're read for you, then stored encrypted.</p>
+      </div>
+      <div class="batch-bar" id="exp-queue-bar" style="display:none"><div class="batch-info">Check the details, then save.</div><div class="batch-actions"><button class="btn btn-ghost" id="exp-save-all">Save all</button></div></div>
+      <div class="queue-list" id="exp-queue"></div>
+      <div id="exp-body"></div>
+    </div>
+
     <!-- JOBS -->
     <div id="tab-jobs" class="tab-panel">
       <div class="page-head">
@@ -869,7 +905,7 @@ select.mini-input{appearance:none;-webkit-appearance:none;cursor:pointer}
 // encrypted ("wrapped") by a key derived from your passcode (PBKDF2, 600,000 rounds) and, optionally,
 // by a key that only your Touch ID passkey can produce (WebAuthn PRF). Nothing readable is stored on disk.
 var LS=window.localStorage;
-var PROTECTED=['payslips','jobs','folder_jobs','sync_seen','gemini_key','goals','forecasts','fc_draft','backup_before_redesign','backup_before_fun_update'];
+var PROTECTED=['payslips','jobs','folder_jobs','sync_seen','gemini_key','goals','forecasts','fc_draft','expenses','backup_before_redesign','backup_before_fun_update'];
 var VAULT={ key:null, cache:{}, unlocked:false, pending:Promise.resolve(), meta:null };
 var SS={
   getItem:function(k){
@@ -1244,6 +1280,7 @@ function switchTab(name){
   if(name==='forecast') renderForecast();
   if(name==='ask'){ renderChat(false); setTimeout(function(){ $('chat-input').focus(); },50); }
   if(name==='tax') renderTax();
+  if(name==='deductions') renderDeductions();
   window.scrollTo({ top:0, behavior:'smooth' });
 }
 
@@ -1875,7 +1912,7 @@ function periodFromFileName(name){
   return p(m[1])+'/'+p(m[2])+'/'+m[3]+' - '+p(m[4])+'/'+p(m[5])+'/'+m[6];
 }
 
-async function callGemini(apiKey, base64Data){
+async function callGemini(apiKey, base64Data, mime, prompt){
   var lastErr=null;
   for(var mi=0; mi<GEMINI_MODELS.length; mi++){
     var model=GEMINI_MODELS[mi];
@@ -1887,7 +1924,7 @@ async function callGemini(apiKey, base64Data){
         response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{
           method:'POST', headers:{'Content-Type':'application/json','x-goog-api-key':apiKey}, signal:ctl.signal, referrerPolicy:'no-referrer',
           body:JSON.stringify({
-            contents:[{parts:[{inline_data:{mime_type:'application/pdf',data:base64Data}},{text:EXTRACT_PROMPT}]}],
+            contents:[{parts:[{inline_data:{mime_type:mime||'application/pdf',data:base64Data}},{text:prompt||EXTRACT_PROMPT}]}],
             generationConfig:{temperature:0,maxOutputTokens:8192,responseMimeType:'application/json'}
           })
         });
@@ -2566,7 +2603,7 @@ function onForecastEvent(e){
 
 // ══ CHAT ══
 var CHAT=[];
-var CHAT_SUGGEST=['How much have I earned this financial year?','Which job pays more per hour?','What was my biggest payslip?','How many Sunday hours did I work last month?','When will I reach my goal?','Has my hourly rate gone up?'];
+var CHAT_SUGGEST=['How much have I earned this financial year?','How much can I claim in deductions this year?','Which job pays more per hour?','What was my biggest payslip?','How many Sunday hours did I work last month?','When will I reach my goal?','Has my hourly rate gone up?'];
 function chatContext(){
   var jobs=loadJobs();
   return JSON.stringify({
@@ -2578,11 +2615,12 @@ function chatContext(){
       hours:{ weekday:+r.mf_hrs||0, saturday:+r.sat_hrs||0, sunday:+r.sun_hrs||0, publicHoliday:+r.ph_hrs||0 },
       pay:{ weekday:+r.mf_amt||0, saturday:+r.sat_amt||0, sunday:+r.sun_amt||0, publicHoliday:+r.ph_amt||0 },
       gross:+totalGrossOf(p).toFixed(2), tax:+(parseFloat(p.tax)||0), net:+(parseFloat(p.net)||0) }; }),
+    deductions:loadExpenses().map(function(x){ return { date:x.date, shop:x.merchant, what:x.description, category:catOf(x.category).l, paid:+(parseFloat(x.amount)||0), workUsePercent:workPctOf(x), claimable:+deductibleOf(x).toFixed(2) }; }),
     goals:loadGoals().map(function(g){ var pr=goalProgress(g); return { name:g.name, target:g.target, saved:+pr.saved.toFixed(2), deadline:g.deadline||null, percentOfTakeHomeSaved:g.pct, estimatedFinish:pr.eta?isoOf(pr.eta):null }; })
   });
 }
 var CHAT_SYSTEM='You are the friendly assistant inside a personal payslip tracker app. The user is a student who works casual jobs in Melbourne. '+
-  'Answer questions using ONLY the JSON data provided. Do the maths carefully and show the key numbers. '+
+  'Answer questions using ONLY the JSON data provided (payslips, jobs, goals and deduction receipts). Do the maths carefully and show the key numbers. '+
   'Keep answers short (under about 120 words) unless asked for detail; use short bullet lists for breakdowns and **bold** for the main figure. '+
   'If the data cannot answer the question, say so plainly. You may give general information about Australian pay and tax, but do not give personal financial or tax advice; suggest checking myGov or the ATO for official figures.';
 
@@ -2662,7 +2700,7 @@ function renderTax(){
   $('tax-fy').innerHTML=fys.map(function(fy){ return '<option value="'+fy+'"'+(fy===TAX_FY?' selected':'')+'>'+fyLong(fy)+'</option>'; }).join('');
   var list=all.filter(function(p){ return getFY(p.date)===TAX_FY; }).sort(function(a,b){ return a.date<b.date?-1:1; });
   $('tax-sub').textContent='1 July '+(TAX_FY-1)+' – 30 June '+TAX_FY;
-  if(!list.length){ $('tax-pack').innerHTML='<div class="glass empty-state"><strong>No payslips in '+fyLong(TAX_FY)+'</strong></div>'; return; }
+  if(!list.length && !taxExpenses().length){ $('tax-pack').innerHTML='<div class="glass empty-state"><strong>No payslips in '+fyLong(TAX_FY)+'</strong></div>'; return; }
   var tot=function(ps){ return { g:sumBy(ps,totalGrossOf), t:sumBy(ps,function(p){ return parseFloat(p.tax); }), n:sumBy(ps,function(p){ return parseFloat(p.net); }), h:sumBy(ps,totalHoursOf) }; };
   var T=tot(list);
   var html='<div class="print-only"><h1 style="font-size:22px;margin-bottom:4px">Payslip summary — '+fyLong(TAX_FY)+'</h1><p style="font-size:12px;margin-bottom:12px">1 July '+(TAX_FY-1)+' to 30 June '+TAX_FY+' · generated '+new Date().toLocaleDateString('en-AU')+'</p></div>'+
@@ -2672,6 +2710,7 @@ function renderTax(){
       '<div><div class="stat-label">Take-home</div><div class="stat-value">'+fmt(T.n)+'</div></div>'+
       '<div><div class="stat-label">Hours</div><div class="stat-value">'+T.h.toFixed(1)+'</div></div>'+
       '<div><div class="stat-label">Payslips</div><div class="stat-value">'+list.length+'</div></div>'+
+      '<div><div class="stat-label">Deductions</div><div class="stat-value">'+fmt(sumBy(taxExpenses(),deductibleOf))+'</div></div>'+
     '</div>';
   var groups=jobs.concat(list.some(function(p){ return jobIdFor(p,jobs)==='none'; })?[NO_JOB]:[]);
   groups.forEach(function(j){
@@ -2693,6 +2732,7 @@ function renderTax(){
       '</tbody></table>'+
       '<div class="check-list no-print">'+checks.map(function(c){ return '<div class="check '+(c.w?'warn':'ok')+'">'+(c.w?'⚠️':'✅')+' <span>'+c.t+'</span></div>'; }).join('')+'</div></div>';
   });
+  html+=taxDeductionsHtml();
   html+='<div class="tax-note">Your employers report your pay to the ATO through Single Touch Payroll, and it shows up as an income statement in myGov (marked “tax ready” once they finalise it, usually by 14 July). Use this pack to check those figures match your payslips. It isn\'t tax advice.</div>';
   $('tax-pack').innerHTML=html;
 }
@@ -2719,10 +2759,15 @@ async function taxZip(){
       var key=folder+'/'+name; if(used[key]) name=name.replace(/\.pdf$/i,'')+' ('+(++used[key])+').pdf'; else used[key]=1;
       zip.file(folder+'/'+name, data.split(',')[1], { base64:true }); n++;
     }
+    var xs=taxExpenses(), nr=0, usedR={};
+    for(var r=0;r<xs.length;r++){ if(!xs[r].hasFile) continue; var rd=await pdfGet('r_'+xs[r].id); if(!rd) continue;
+      var rn=receiptFileName(xs[r]); if(usedR[rn]) rn=rn.replace(/(\.[a-z]+)$/,' ('+(++usedR[rn])+')$1'); else usedR[rn]=1;
+      zip.file('Receipts/'+rn, rd.split(',')[1], { base64:true }); nr++; }
+    if(xs.length) zip.file('Deductions '+fyLong(TAX_FY)+'.csv', deductionsCsv());
     zip.file('Summary '+fyLong(TAX_FY)+'.csv', taxCsv());
     var blob=await zip.generateAsync({ type:'blob' });
     downloadBlob(blob, 'Payslips '+fyLong(TAX_FY).replace(/\s/g,' ')+'.zip');
-    toast('📦 Zipped '+n+' payslip PDFs');
+    toast('📦 Zipped '+n+' payslip PDFs'+(nr?' and '+nr+' receipt'+(nr!==1?'s':''):''));
   }catch(e){ alert('Couldn\'t make the zip: '+e.message); }
   btn.disabled=false; btn.innerHTML=label;
 }
@@ -2902,6 +2947,278 @@ function renderWrappedBanner(){
   slot.innerHTML=S?'<button class="wrapped-banner" id="wrapped-banner"><span class="big">✨</span><div><strong>Your '+(sc==='all'?'all-time':fyLong(parseInt(sc,10)))+' Wrapped is ready</strong><span>Tap to see your year in pay — biggest payday, shift personality and more.</span></div></button>':'';
 }
 
+
+// ══ DEDUCTIONS (receipts & invoices) ══
+// Saved in the encrypted store as 'expenses'; each receipt file is encrypted in the PDF store under 'r_<id>'.
+var EXP_CATS=[
+  { k:'clothing', l:'Uniform & protective clothing', e:'👕', tip:'Compulsory or registered uniforms and protective gear (like non-slip shoes), plus laundering them. Plain clothes you could wear anywhere, like black pants, don\'t count.' },
+  { k:'training', l:'Courses & certifications', e:'🎓', tip:'Courses that keep up or improve the skills for a job you already have — e.g. renewing a first aid or pool lifeguard certificate your job requires.' },
+  { k:'tools', l:'Tools & equipment', e:'🧰', tip:'Equipment you use for work. Items costing more than $300 are usually claimed bit by bit over several years.' },
+  { k:'phone', l:'Phone & internet', e:'📱', tip:'Only the work-use share — set the work % to roughly how much you use it for work.' },
+  { k:'travel', l:'Work travel', e:'🚌', tip:'Travel between two jobs on the same day, or for work tasks. Normal trips between home and work usually aren\'t deductible.' },
+  { k:'membership', l:'Union & professional fees', e:'🪪', tip:'Union fees and work-related memberships or registrations.' },
+  { k:'donations', l:'Gifts & donations', e:'💝', tip:'Gifts of $2 or more to registered charities (deductible gift recipients). Raffle tickets, or anything you got something back for, don\'t count.' },
+  { k:'tax', l:'Tax agent & tax help', e:'🧾', tip:'Fees for a registered tax agent or other help with your tax.' },
+  { k:'other', l:'Other work expense', e:'📎', tip:'Anything else you paid for yourself that\'s directly for earning your income.' }
+];
+var EXP_KEYS=EXP_CATS.map(function(c){ return c.k; });
+function catOf(k){ return EXP_CATS.find(function(c){ return c.k===k; })||EXP_CATS[EXP_CATS.length-1]; }
+function loadExpenses(){ return loadList('expenses'); }
+function saveExpenses(l){ saveList('expenses', l); }
+function workPctOf(x){ var p=parseFloat(x.workPct); return isNaN(p)?100:Math.min(100,Math.max(0,p)); }
+function deductibleOf(x){ return (parseFloat(x.amount)||0)*workPctOf(x)/100; }
+var EXP_FY=null, expQueue=[];
+
+var RECEIPT_PROMPT='Read this receipt, tax invoice or donation receipt. Return a single raw JSON object — no markdown, no code fences.\n'+
+  'Keys: merchant (shop or business name), date (purchase or invoice date, YYYY-MM-DD), description (what was bought, short, e.g. "Non-slip work shoes"), '+
+  'total (amount paid including GST, number string), gst (GST amount shown, number string, "0" if none), '+
+  'category (best guess for an Australian employee\'s work-related deduction, one of: '+EXP_KEYS.join(', ')+'), '+
+  'isReceipt (true if this is a receipt, invoice or donation receipt, otherwise false). No $ signs or commas.';
+
+function readAsDataUrl(f){ return new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){ res(r.result); }; r.onerror=function(){ rej(r.error); }; r.readAsDataURL(f); }); }
+// Photos are shrunk to a sensible size before they're stored and sent to Gemini
+async function prepareReceiptFile(f){
+  var mime=f.type||(/\.pdf$/i.test(f.name)?'application/pdf':'');
+  if(/^image\/(jpeg|png|webp)$/.test(mime) && window.createImageBitmap){
+    try{
+      var bmp=await createImageBitmap(f), max=2000, sc=Math.min(1, max/Math.max(bmp.width,bmp.height));
+      if(sc<1 || f.size>700*1024){
+        var c=document.createElement('canvas'); c.width=Math.round(bmp.width*sc); c.height=Math.round(bmp.height*sc);
+        var cx=c.getContext('2d'); cx.fillStyle='#fff'; cx.fillRect(0,0,c.width,c.height); cx.drawImage(bmp,0,0,c.width,c.height);
+        return { dataUrl:c.toDataURL('image/jpeg',0.85), mime:'image/jpeg' };
+      }
+    }catch(e){ console.warn('Couldn\'t resize image', e); }
+  }
+  var d=await readAsDataUrl(f);
+  return { dataUrl:d.replace(/^data:[^;]*;/,'data:'+mime+';'), mime:mime };
+}
+
+function addReceiptFiles(files){
+  Array.from(files).forEach(function(f){
+    var ok=/^image\//.test(f.type)||f.type==='application/pdf'||/\.(pdf|jpe?g|png|webp|heic|heif)$/i.test(f.name);
+    if(!ok){ alert(f.name+' isn\'t a PDF or photo, so it was skipped.'); return; }
+    if(f.size>20*1024*1024){ alert(f.name+' is too large (max 20 MB).'); return; }
+    var item={ id:'x_'+Date.now()+'_'+Math.random().toString(36).slice(2), fileName:f.name, status:'reading', data:{ workPct:100, jobId:'' }, warn:'', errorMsg:'' };
+    expQueue.unshift(item); renderExpQueue();
+    prepareReceiptFile(f).then(function(p){
+      item.dataUrl=p.dataUrl; item.mime=p.mime||'application/pdf';
+      extractChain=extractChain.then(function(){ return extractReceipt(item); }).catch(function(e){ console.error(e); });
+    }).catch(function(){ item.status='error'; item.errorMsg='Couldn\'t read the file'; renderExpQueue(); });
+  });
+}
+
+async function extractReceipt(item){
+  if(expQueue.indexOf(item)<0) return;
+  try{
+    var key=getApiKey(); if(!key) throw new Error('No Gemini API key saved');
+    var p=await callGemini(key, item.dataUrl.split(',')[1], item.mime, RECEIPT_PROMPT);
+    var d=item.data;
+    d.merchant=String(p.merchant||'').trim(); d.date=/^\d{4}-\d{2}-\d{2}$/.test(p.date||'')?p.date:'';
+    d.description=String(p.description||'').trim();
+    d.amount=String(p.total||'').replace(/[$,]/g,'').trim(); d.gst=String(p.gst||'').replace(/[$,]/g,'').trim();
+    d.category=EXP_KEYS.indexOf(p.category)>=0?p.category:'other';
+    if(p.isReceipt===false) item.warn='This doesn\'t look like a receipt or invoice — double-check it.';
+    item.status='review';
+  }catch(e){
+    console.error('Receipt read failed', e);
+    item.status='error'; item.errorMsg=e.message||'Couldn\'t read it';
+    if(!item.data.category) item.data.category='other';
+  }
+  renderExpQueue();
+}
+
+function findExpenseDup(d, ignoreId){
+  var m=(d.merchant||'').trim().toLowerCase(), a=parseFloat(d.amount)||0;
+  return loadExpenses().find(function(x){ return x.id!==ignoreId && x.date===d.date && Math.abs((parseFloat(x.amount)||0)-a)<0.01 && (x.merchant||'').trim().toLowerCase()===m; })||null;
+}
+
+function expForm(item){
+  var d=item.data, id=item.id;
+  function inp(k, ph, type, extra){ return '<input class="mini-input" data-ek="'+k+'" data-eid="'+id+'" type="'+(type||'text')+'" placeholder="'+esc(ph||'')+'" value="'+esc(d[k]==null?'':d[k])+'"'+(extra||'')+'/>'; }
+  var cat=catOf(d.category||'other'), dup=findExpenseDup(d, item.editId);
+  return '<div class="mini-grid">'+
+    '<div class="mini-field"><div class="mini-label">Date</div>'+inp('date','','date')+'</div>'+
+    '<div class="mini-field"><div class="mini-label">Shop / business</div>'+inp('merchant','e.g. Rebel Sport')+'</div>'+
+    '<div class="mini-field" style="grid-column:1/-1"><div class="mini-label">What was it for?</div>'+inp('description','e.g. Non-slip work shoes')+'</div>'+
+    '<div class="mini-field"><div class="mini-label">Category</div><select class="mini-input" data-ek="category" data-eid="'+id+'">'+
+      EXP_CATS.map(function(c){ return '<option value="'+c.k+'"'+(c.k===cat.k?' selected':'')+'>'+c.e+' '+esc(c.l)+'</option>'; }).join('')+'</select></div>'+
+    '<div class="mini-field"><div class="mini-label">Job (optional)</div><select class="mini-input" data-ek="jobId" data-eid="'+id+'"><option value="">Not one job</option>'+
+      loadJobs().map(function(j){ return '<option value="'+j.id+'"'+(d.jobId===j.id?' selected':'')+'>'+esc(j.name)+'</option>'; }).join('')+'</select></div>'+
+    '<div class="mini-field"><div class="mini-label">Total paid ($)</div><div class="dollar-mini"><span class="ds">$</span>'+inp('amount','0.00','number',' step="0.01" min="0"')+'</div></div>'+
+    '<div class="mini-field"><div class="mini-label">GST included ($)</div><div class="dollar-mini"><span class="ds">$</span>'+inp('gst','0.00','number',' step="0.01" min="0"')+'</div></div>'+
+    '<div class="mini-field"><div class="mini-label">Work use (%)</div>'+inp('workPct','100','number',' step="1" min="0" max="100"')+'</div>'+
+    '<div class="mini-field"><div class="mini-label">You can claim</div><div class="claim-val" id="claim_'+id+'">'+fmt(deductibleOf(d))+'</div></div>'+
+    '<div class="mini-field" style="grid-column:1/-1"><div class="mini-label">Notes (optional)</div>'+inp('notes','e.g. Required for lifeguard shifts')+'</div>'+
+  '</div>'+
+  '<div class="cat-tip">'+cat.e+' <span>'+esc(cat.tip)+'</span></div>'+
+  (dup?'<div class="dup-warn"><span>⚠️ You already saved a receipt from '+esc(dup.merchant||'this shop')+' for '+fmt(dup.amount)+' on '+esc(dup.date)+'.</span></div>':'')+
+  '<div class="q-actions"><button class="btn-sm btn-sm-primary" data-esave="'+id+'">'+(item.editId?'Save changes':'Save receipt')+'</button><button class="btn-sm" data-eremove="'+id+'">'+(item.editId?'Cancel':'Remove')+'</button></div>';
+}
+
+function renderExpQueue(){
+  var box=$('exp-queue'); if(!box) return;
+  box.innerHTML=expQueue.map(function(item){
+    var head='<div class="queue-header"><span style="font-size:16px">'+(item.editId?'✏️':'🧾')+'</span><span class="queue-filename">'+esc(item.editId?('Editing: '+(item.data.description||item.data.merchant||'receipt')):item.fileName)+'</span>'+
+      '<span class="q-status '+({ reading:'s-extracting', review:'s-review', error:'s-error' }[item.status])+'">'+({ reading:'Reading…', review:item.editId?'Editing':'Check details', error:'Fill in manually' }[item.status])+'</span>'+
+      '<button class="queue-remove" data-eremove="'+item.id+'" title="Remove"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>';
+    var body;
+    if(item.status==='reading') body='<div class="queue-body"><div class="q-spinner"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Reading the receipt…</div></div>';
+    else body='<div class="queue-body">'+(item.status==='error'?'<div class="error-msg">⚠ '+esc(item.errorMsg)+' — fill in the details below.</div>':'')+(item.warn?'<div class="dup-warn"><span>'+esc(item.warn)+'</span></div>':'')+expForm(item)+'</div>';
+    return '<div class="queue-card glass" id="eq_'+item.id+'">'+head+body+'</div>';
+  }).join('');
+  $('exp-queue-bar').style.display=expQueue.filter(function(i){ return i.status==='review' && !i.editId; }).length>1?'flex':'none';
+}
+
+function onExpInput(e){
+  var t=e.target, id=t.dataset.eid, k=t.dataset.ek; if(!id||!k) return;
+  var item=expQueue.find(function(i){ return i.id===id; }); if(!item) return;
+  item.data[k]=t.value;
+  if(k==='category'){ renderExpQueue(); return; }
+  var c=$('claim_'+id); if(c) c.textContent=fmt(deductibleOf(item.data));
+}
+
+async function saveExpItem(id){
+  var item=expQueue.find(function(i){ return i.id===id; }); if(!item) return;
+  var d=item.data;
+  if(!d.date){ alert('Add the date of the purchase.'); return; }
+  if(!(parseFloat(d.amount)>0)){ alert('Add the amount you paid.'); return; }
+  var list=loadExpenses();
+  var entry={ id:item.editId||('e_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)), date:d.date, merchant:(d.merchant||'').trim(), description:(d.description||'').trim(),
+    category:EXP_KEYS.indexOf(d.category)>=0?d.category:'other', amount:(+parseFloat(d.amount).toFixed(2)).toString(), gst:d.gst?(+parseFloat(d.gst)||0).toFixed(2):'0.00',
+    workPct:workPctOf(d), jobId:d.jobId||'', notes:(d.notes||'').trim() };
+  if(item.editId){
+    var old=list.find(function(x){ return x.id===item.editId; }); if(!old) return;
+    Object.assign(old, entry);
+  } else {
+    entry.fileName=item.fileName; entry.mime=item.mime||''; entry.createdAt=new Date().toISOString(); entry.hasFile=false;
+    if(item.dataUrl){ try{ await pdfPut('r_'+entry.id, item.dataUrl); entry.hasFile=true; }catch(e){ alert('Saved the details, but couldn\'t store the file: '+e.message); } }
+    list.push(entry);
+  }
+  saveExpenses(list);
+  expQueue=expQueue.filter(function(i){ return i!==item; });
+  if(!item.editId) toast('🧾 Receipt saved — '+fmt(deductibleOf(entry))+' to claim');
+  EXP_FY=getFY(entry.date)||EXP_FY;
+  renderDeductions();
+}
+
+function editExpense(id){
+  var x=loadExpenses().find(function(e){ return e.id===id; }); if(!x) return;
+  if(expQueue.some(function(i){ return i.editId===id; })) return;
+  expQueue.unshift({ id:'x_edit_'+id, editId:id, fileName:x.fileName||'', status:'review', data:Object.assign({}, x), warn:'' });
+  renderExpQueue(); window.scrollTo({ top:0, behavior:'smooth' });
+}
+function deleteExpense(id){
+  var list=loadExpenses(), x=list.find(function(e){ return e.id===id; }); if(!x) return;
+  if(!confirm('Delete this receipt'+(x.merchant?' from '+x.merchant:'')+'? This can\'t be undone.')) return;
+  saveExpenses(list.filter(function(e){ return e.id!==id; }));
+  pdfDel('r_'+id);
+  renderDeductions();
+}
+async function openReceipt(id){
+  var x=loadExpenses().find(function(e){ return e.id===id; }); if(!x) return;
+  var data=null; try{ data=await pdfGet('r_'+id); }catch(e){}
+  if(!data){ alert('The file for this receipt couldn\'t be found.'); return; }
+  $('modal-title').textContent=(x.description||x.merchant||'Receipt')+' — '+fmt(x.amount);
+  $('pdf-frame').src=data;
+  $('pdf-modal').classList.add('open');
+}
+
+function expFYs(){
+  var fys=[...new Set(loadExpenses().map(function(x){ return getFY(x.date); }).filter(Boolean).concat([currentFY(), currentFY()-1]))].sort(function(a,b){ return b-a; });
+  return fys;
+}
+function renderDeductions(){
+  ensureJobs();
+  var fys=expFYs();
+  if(!EXP_FY || fys.indexOf(EXP_FY)<0) EXP_FY=currentFY();
+  $('exp-fy').innerHTML=fys.map(function(fy){ return '<option value="'+fy+'"'+(fy===EXP_FY?' selected':'')+'>'+fyLong(fy)+'</option>'; }).join('');
+  renderExpQueue();
+  var jobs=loadJobs(), list=loadExpenses().filter(function(x){ return getFY(x.date)===EXP_FY; }).sort(function(a,b){ return a.date<b.date?1:-1; });
+  var total=sumBy(list,deductibleOf), paid=sumBy(list,function(x){ return parseFloat(x.amount); }), gst=sumBy(list,function(x){ return parseFloat(x.gst); });
+  var noFile=list.filter(function(x){ return !x.hasFile; }).length;
+  var inc=loadPayslips().filter(function(p){ return getFY(p.date)===EXP_FY; });
+  var incG=sumBy(inc,totalGrossOf), incT=sumBy(inc,function(p){ return parseFloat(p.tax); });
+
+  var byCat=EXP_CATS.map(function(c){ var xs=list.filter(function(x){ return x.category===c.k; }); return { c:c, v:sumBy(xs,deductibleOf), n:xs.length }; }).filter(function(r){ return r.n; }).sort(function(a,b){ return b.v-a.v; });
+  var html='<div class="stats-grid">'+
+    statCard('You can claim', fmt(total), fyLong(EXP_FY))+
+    statCard('Receipts', String(list.length), noFile?noFile+' without a file':'all with a file attached')+
+    statCard('Total spent', fmt(paid), 'before work-use %')+
+    statCard('GST included', fmt(gst), 'already in the totals')+
+  '</div>';
+  if(byCat.length){
+    html+='<div class="glass exp-cats">'+byCat.map(function(r){ var pc=total>0?r.v/total*100:0; return '<div class="exp-cat-row"><span class="exp-cat-name">'+r.c.e+' '+esc(r.c.l)+'</span><div class="share"><span style="width:'+pc.toFixed(1)+'%;background:var(--accent)"></span></div><strong>'+fmt(r.v)+'</strong></div>'; }).join('')+'</div>';
+  }
+  // Helpful general notes
+  var notes=[];
+  if(total>300 && noFile) notes.push('⚠️ Your claims add up to more than $300, so the ATO expects written evidence (a receipt or invoice) for all of them — '+noFile+' '+(noFile===1?'has':'have')+' no file attached.');
+  if(inc.length && incT<0.01 && incG<18200) notes.push('💡 In '+fyLong(EXP_FY)+' your payslips show '+fmt(incG)+' income and no tax withheld. If your total taxable income stays under the $18,200 tax-free threshold, deductions won\'t change your refund — but keeping receipts is still worth it in case that changes.');
+  html+='<div class="glass rules-card"><div class="sec-title">Before you claim — the ATO\'s 3 golden rules</div><ol>'+
+    '<li>You paid for it yourself and weren\'t paid back.</li><li>It\'s directly related to earning your income.</li><li>You have a record of it, usually a receipt.</li></ol>'+
+    '<div class="goal-sub">Keep records for 5 years after you lodge. Not tax advice — check the ATO or a tax agent if you\'re unsure.</div>'+
+    (notes.length?'<div class="check-list">'+notes.map(function(n){ return '<div class="check warn"><span>'+n+'</span></div>'; }).join('')+'</div>':'')+'</div>';
+
+  html+='<div class="section-head"><div class="section-title">Receipts · '+fyLong(EXP_FY)+'</div></div>';
+  if(!list.length){
+    html+='<div class="glass empty-state"><div style="font-size:40px">🧾</div><strong>No receipts for '+fyLong(EXP_FY)+' yet</strong>Drop a receipt, invoice or photo above and it\'ll be read for you.</div>';
+  } else {
+    html+='<div class="payslip-list">'+list.map(function(x){
+      var c=catOf(x.category), job=x.jobId?jobById(x.jobId,jobs):null, pct=workPctOf(x);
+      return '<div class="payslip-row glass exp-row">'+
+        '<div class="exp-icon">'+c.e+'</div>'+
+        '<div class="payslip-info"><div class="payslip-period">'+esc(x.description||x.merchant||'Receipt')+'</div>'+
+          '<div class="payslip-line"><span class="exp-chip">'+esc(c.l)+'</span>'+(job&&job.id!=='none'?'<span class="exp-chip" style="color:'+job.color+'">'+esc(job.name)+'</span>':'')+
+          '<span class="payslip-employer">'+esc(x.merchant||'')+'</span>'+(x.hasFile?'<button class="btn-view-pdf" data-eview="'+x.id+'">View</button>':'<span class="exp-chip warn">No file</span>')+'</div>'+
+          (x.notes?'<div class="payslip-meta">'+esc(x.notes)+'</div>':'')+
+        '</div>'+
+        '<div class="payslip-amounts"><div class="payslip-gross">'+fmt(deductibleOf(x))+'</div><div class="payslip-net">'+(pct<100?pct+'% of '+fmt(x.amount):'paid '+fmt(x.amount))+'</div></div>'+
+        '<div class="payslip-date">'+esc(x.date)+'</div>'+
+        '<button class="btn-del" data-eedit="'+x.id+'" title="Edit"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>'+
+        '<button class="btn-del" data-edel="'+x.id+'" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>'+
+      '</div>';
+    }).join('')+'<div class="list-foot">'+list.length+' receipt'+(list.length!==1?'s':'')+' · '+fmt(total)+' to claim</div></div>';
+  }
+  $('exp-body').innerHTML=html;
+}
+
+function onExpClick(e){
+  var b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.esave) saveExpItem(b.dataset.esave);
+  else if(b.dataset.eremove){ expQueue=expQueue.filter(function(i){ return i.id!==b.dataset.eremove; }); renderExpQueue(); }
+  else if(b.dataset.eview) openReceipt(b.dataset.eview);
+  else if(b.dataset.eedit) editExpense(b.dataset.eedit);
+  else if(b.dataset.edel) deleteExpense(b.dataset.edel);
+}
+async function saveAllReceipts(){
+  var ready=expQueue.filter(function(i){ return i.status==='review' && !i.editId; });
+  for(var i=0;i<ready.length;i++) await saveExpItem(ready[i].id);
+}
+
+// Tax pack pieces
+function taxExpenses(){ return loadExpenses().filter(function(x){ return getFY(x.date)===TAX_FY; }).sort(function(a,b){ return a.date<b.date?-1:1; }); }
+function taxDeductionsHtml(){
+  var xs=taxExpenses(); if(!xs.length) return '';
+  var tot=sumBy(xs,deductibleOf);
+  var cats=EXP_CATS.map(function(c){ var ys=xs.filter(function(x){ return x.category===c.k; }); return { c:c, v:sumBy(ys,deductibleOf), n:ys.length }; }).filter(function(r){ return r.n; });
+  return '<div class="tax-job glass"><div class="tax-job-head"><span style="font-size:18px">🧾</span><div class="job-name">Deductions<div class="job-emp">Work-related expenses and donations from your receipts</div></div><strong>'+fmt(tot)+'</strong></div>'+
+    '<table class="tax-table"><thead><tr><th>Category</th><th class="num">Receipts</th><th class="num">Claim</th></tr></thead><tbody>'+
+    cats.map(function(r){ return '<tr><td>'+r.c.e+' '+esc(r.c.l)+'</td><td class="num">'+r.n+'</td><td class="num">'+fmt(r.v)+'</td></tr>'; }).join('')+
+    '<tr><td><strong>Total</strong></td><td class="num"><strong>'+xs.length+'</strong></td><td class="num"><strong>'+fmt(tot)+'</strong></td></tr></tbody></table>'+
+    '<table class="tax-table" style="margin-top:12px"><thead><tr><th>Date</th><th>What</th><th>Category</th><th class="num">Paid</th><th class="num">Work %</th><th class="num">Claim</th></tr></thead><tbody>'+
+    xs.map(function(x){ return '<tr><td>'+esc(x.date)+'</td><td>'+esc((x.description||'')+(x.merchant?' — '+x.merchant:''))+'</td><td>'+esc(catOf(x.category).l)+'</td><td class="num">'+fmt(x.amount)+'</td><td class="num">'+workPctOf(x)+'%</td><td class="num">'+fmt(deductibleOf(x))+'</td></tr>'; }).join('')+
+    '</tbody></table></div>';
+}
+function deductionsCsv(){
+  function q(v){ return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'; }
+  var jobs=loadJobs();
+  var head=['Date','Shop / business','Description','Category','Job','Paid (incl GST)','GST','Work %','Claim','Notes','Receipt file'];
+  return '﻿'+head.map(q).join(',')+'\n'+taxExpenses().map(function(x){ return [x.date,x.merchant,x.description,catOf(x.category).l,x.jobId?jobById(x.jobId,jobs).name:'',x.amount,x.gst,workPctOf(x),deductibleOf(x).toFixed(2),x.notes,x.hasFile?(x.fileName||'yes'):''].map(q).join(','); }).join('\n');
+}
+function receiptFileName(x){
+  var ext=(x.mime==='application/pdf'||/\.pdf$/i.test(x.fileName||''))?'pdf':(x.mime==='image/png'?'png':(x.mime==='image/webp'?'webp':(/heic/i.test(x.mime||'')?'heic':'jpg')));
+  return (x.date+' '+(x.merchant||x.description||'receipt')).replace(/[\\/:*?"<>|]/g,'-').slice(0,80)+'.'+ext;
+}
+
 // ══ WIRE UP ALL EVENTS ══
 document.addEventListener('DOMContentLoaded', function(){
   // Login
@@ -3000,6 +3317,18 @@ document.addEventListener('DOMContentLoaded', function(){
   $('tax-print').addEventListener('click', function(){ window.print(); });
   $('tax-csv').addEventListener('click', function(){ downloadBlob(new Blob([taxCsv()],{ type:'text/csv;charset=utf-8' }), 'Payslips '+fyLong(TAX_FY)+'.csv'); });
   $('tax-zip').addEventListener('click', taxZip);
+
+  // Deductions
+  $('exp-file-input').addEventListener('change', function(){ if(this.files.length) addReceiptFiles(this.files); this.value=''; });
+  var ed=$('exp-drop');
+  ed.addEventListener('dragover', function(e){ e.preventDefault(); ed.classList.add('drag-over'); });
+  ed.addEventListener('dragleave', function(){ ed.classList.remove('drag-over'); });
+  ed.addEventListener('drop', function(e){ e.preventDefault(); ed.classList.remove('drag-over'); addReceiptFiles(e.dataTransfer.files); });
+  ['input','change'].forEach(function(ev){ $('exp-queue').addEventListener(ev, onExpInput); });
+  $('exp-queue').addEventListener('click', onExpClick);
+  $('exp-body').addEventListener('click', onExpClick);
+  $('exp-fy').addEventListener('change', function(){ EXP_FY=parseInt(this.value,10); renderDeductions(); });
+  $('exp-save-all').addEventListener('click', saveAllReceipts);
 
   // Heatmap tooltip
   $('heatmap').addEventListener('mousemove', onHeatHover);
