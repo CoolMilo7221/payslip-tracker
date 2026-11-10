@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-YwvUHEUlqHTLUFfY4OI3e5DKv+ePkKwdjQ1oXJtMkYM=' https://cdn.jsdelivr.net/npm/chart.js@4.4.0/ https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/; style-src 'unsafe-inline'; img-src data: blob:; connect-src https://generativelanguage.googleapis.com; frame-src data: blob:; object-src data: blob:; base-uri 'none'; form-action 'none'"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-dzFdYSFs97NfXrziyPr2Zru5gDR78RzrDRusAKRpolk=' https://cdn.jsdelivr.net/npm/chart.js@4.4.0/ https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/; style-src 'unsafe-inline'; img-src data: blob:; connect-src https://generativelanguage.googleapis.com; frame-src data: blob:; object-src data: blob:; base-uri 'none'; form-action 'none'"/>
 <meta name="referrer" content="no-referrer"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="color-scheme" content="light dark"/>
@@ -3313,8 +3313,11 @@ function taxReturnData(fy){
   var jobs=loadJobs();
   var ps=loadPayslips().filter(function(p){ return getFY(p.date)===fy; });
   var emp={};
-  ps.forEach(function(p){ var j=jobById(jobIdFor(p,jobs),jobs); var k=(p.employer||j.name||'Unknown employer').trim();
-    var e=emp[k]=emp[k]||{ name:k, job:j, gross:0, tax:0, n:0, first:p.date, last:p.date };
+  // One row per job (the same employer often appears under slightly different names on payslips)
+  ps.forEach(function(p){ var j=jobById(jobIdFor(p,jobs),jobs), raw=(p.employer||'').trim();
+    var k=j.id!=='none'?'job:'+j.id:'emp:'+normEmp(raw||'Unknown employer');
+    var e=emp[k]=emp[k]||{ name:j.id!=='none'?j.name:(raw||'Unknown employer'), job:j, names:[], gross:0, tax:0, n:0, first:p.date, last:p.date };
+    if(raw && !e.names.some(function(x){ return normEmp(x)===normEmp(raw); })) e.names.push(raw);
     e.gross+=totalGrossOf(p); e.tax+=parseFloat(p.tax)||0; e.n++; if(p.date<e.first) e.first=p.date; if(p.date>e.last) e.last=p.date; });
   var employers=Object.keys(emp).map(function(k){ return emp[k]; }).sort(function(a,b){ return b.gross-a.gross; });
   var xs=(typeof loadExpenses==='function'?loadExpenses():[]).filter(function(x){ return getFY(x.date)===fy; });
@@ -3332,7 +3335,7 @@ function taxReturnData(fy){
 }
 function taxReturnSummary(fy){
   var d=taxReturnData(fy);
-  return { financialYear:fyLong(fy), salaryAndWages:d.employers.map(function(e){ return { employer:e.name, gross:+e.gross.toFixed(2), taxWithheld:+e.tax.toFixed(2) }; }),
+  return { financialYear:fyLong(fy), salaryAndWages:d.employers.map(function(e){ return { employer:e.name, namesOnPayslips:e.names, gross:+e.gross.toFixed(2), taxWithheld:+e.tax.toFixed(2) }; }),
     deductions:d.dedList.map(function(x){ return { question:x.code+' '+D_LABELS[x.code].t, amount:+x.total.toFixed(2) }; }),
     taxableIncomeEstimate:d.taxable, estimatedRefundOrDebt:d.est?+d.est.result.toFixed(2):null };
 }
@@ -3391,8 +3394,8 @@ function renderTaxReturn(){
   var steps=[];
   steps.push(step('start', fy, '1. Get ready', '<ul class="ret-list"><li>Sign in to <strong>myGov</strong> and open the ATO → <strong>Lodge tax return</strong>.</li><li>Wait until each income statement says <strong>"Tax ready"</strong> (employers finalise them by 14 July).</li><li>Have your bank BSB and account number handy for the refund.</li></ul>'));
   // Income statements
-  var empHtml=d.employers.length?'<div class="tscroll"><table class="tax-table"><thead><tr><th>Employer (payer)</th><th class="num">Gross payments</th><th></th><th class="num">Tax withheld</th><th></th></tr></thead><tbody>'+
-    d.employers.map(function(e){ return '<tr><td><span class="dot" style="background:'+e.job.color+';margin-right:6px"></span>'+esc(e.name)+'<div class="goal-sub">'+e.n+' payslip'+(e.n!==1?'s':'')+' · '+esc(e.first)+' to '+esc(e.last)+'</div></td>'+
+  var empHtml=d.employers.length?'<div class="tscroll"><table class="tax-table"><thead><tr><th>Job / employer</th><th class="num">Gross payments</th><th></th><th class="num">Tax withheld</th><th></th></tr></thead><tbody>'+
+    d.employers.map(function(e){ return '<tr><td><span class="dot" style="background:'+e.job.color+';margin-right:6px"></span><strong>'+esc(e.name)+'</strong>'+(e.names.length?'<div class="goal-sub">'+e.names.map(esc).join(' · ')+'</div>':'')+'<div class="goal-sub">'+e.n+' payslip'+(e.n!==1?'s':'')+' · '+esc(e.first)+' to '+esc(e.last)+'</div></td>'+
       '<td class="num">'+fmt(e.gross)+'</td><td>'+copyBtn(money2(e.gross))+'</td><td class="num">'+fmt(e.tax)+'</td><td>'+copyBtn(money2(e.tax))+'</td></tr>'; }).join('')+
     '<tr><td><strong>Total</strong></td><td class="num"><strong>'+fmt(d.wages)+'</strong></td><td></td><td class="num"><strong>'+fmt(d.withheld)+'</strong></td><td></td></tr></tbody></table></div>'
     :'<div class="sync-empty">No payslips in this financial year.</div>';
