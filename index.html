@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-zGZdXD7Bl0fok41QuTECfaSewsW2NIL0eEO80gBAOBk=' https://cdn.jsdelivr.net/npm/chart.js@4.4.0/ https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/; style-src 'unsafe-inline'; img-src data: blob:; connect-src https://generativelanguage.googleapis.com; frame-src data: blob:; object-src data: blob:; base-uri 'none'; form-action 'none'"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-YwvUHEUlqHTLUFfY4OI3e5DKv+ePkKwdjQ1oXJtMkYM=' https://cdn.jsdelivr.net/npm/chart.js@4.4.0/ https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/; style-src 'unsafe-inline'; img-src data: blob:; connect-src https://generativelanguage.googleapis.com; frame-src data: blob:; object-src data: blob:; base-uri 'none'; form-action 'none'"/>
 <meta name="referrer" content="no-referrer"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="color-scheme" content="light dark"/>
@@ -494,7 +494,7 @@ select.mini-input{appearance:none;-webkit-appearance:none;cursor:pointer}
 
 /* PRINT: tax pack only */
 @media print{
-  body::before,.topbar,.page-head .filters,.no-print,#tab-dashboard,#tab-analytics,#tab-goals,#tab-forecast,#tab-ask,#tab-deductions,#tab-jobs,#tab-upload,.sync-banner,#wrapped,.toast{display:none!important}
+  body::before,.topbar,.page-head .filters,.no-print,#tab-dashboard,#tab-analytics,#tab-goals,#tab-forecast,#tab-ask,#tab-deductions,#tab-taxreturn,#tab-jobs,#tab-upload,.sync-banner,#wrapped,.toast{display:none!important}
   html,body{background:#fff!important;color:#000}
   #tab-tax{display:block!important}
   .glass{background:#fff!important;box-shadow:none!important;border:1px solid #ddd!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
@@ -531,6 +531,52 @@ select.mini-input{appearance:none;-webkit-appearance:none;cursor:pointer}
 .cat-tip{display:flex;gap:8px;font-size:12px;color:var(--text2);background:var(--fill2);border-radius:10px;padding:9px 12px;margin-bottom:12px;line-height:1.45}
 .claim-val{font-size:18px;font-weight:700;padding:5px 2px;font-variant-numeric:tabular-nums;color:var(--green)}
 @media(max-width:620px){ .exp-cat-row{grid-template-columns:1fr 70px} .exp-cat-row .share{display:none} }
+
+/* TAX RETURN */
+.ret-banner{font-size:13px;font-weight:600;padding:12px 16px;border-radius:14px;margin-bottom:12px}
+.ret-banner.open{background:var(--accent-soft)}
+.ret-banner.due{background:var(--green-soft)}
+.ret-banner.late{background:var(--orange-soft)}
+.ret-card{padding:16px 18px;margin-bottom:12px}
+.ret-card .check{margin-top:8px;line-height:1.5}
+.ret-est{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:20px;align-items:start}
+.ret-big{font-size:46px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;margin:4px 0}
+.ret-big.pos{color:var(--green)}
+.ret-big.neg{color:var(--orange)}
+.ret-est .fc-rows{margin-top:0}
+.ret-steps{display:flex;flex-direction:column;gap:10px}
+.ret-step{display:flex;gap:14px;padding:16px 18px;align-items:flex-start;transition:opacity .2s}
+.ret-step.done{opacity:.72}
+.ret-step.done .ret-title{text-decoration:line-through;text-decoration-color:var(--green)}
+.ret-check{position:relative;flex-shrink:0;margin-top:1px;cursor:pointer}
+.ret-check input{position:absolute;opacity:0;width:24px;height:24px;cursor:pointer}
+.ret-check span{display:block;width:24px;height:24px;border-radius:50%;border:2px solid var(--hairline);background:var(--glass-strong);transition:all .15s}
+.ret-check input:checked+span{background:var(--green);border-color:var(--green);box-shadow:inset 0 0 0 4px var(--glass-strong)}
+.ret-check input:focus-visible+span{box-shadow:0 0 0 3px var(--accent-soft)}
+.ret-main{flex:1;min-width:0}
+.ret-title{font-size:16px;font-weight:700;margin-bottom:6px}
+.ret-p{font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.5}
+.ret-list{font-size:13px;color:var(--text2);margin-left:18px;line-height:1.7}
+.ret-list strong{color:var(--text)}
+.ret-inputs{max-width:520px}
+.ret-ded{background:var(--fill2);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.ret-ded-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px}
+.ret-ded-head strong{flex:1;min-width:160px}
+.ret-code{font-size:11px;font-weight:800;padding:3px 8px;border-radius:7px;background:var(--accent);color:#fff}
+.ret-amt{font-weight:700;font-variant-numeric:tabular-nums}
+.ret-items{list-style:none;margin:8px 0 4px;font-size:12px;color:var(--text2)}
+.ret-items li{display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-top:1px solid var(--hairline)}
+.ret-total{display:flex;justify-content:space-between;font-size:14px;padding:6px 4px 0}
+.copy-btn{border:none;background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:700;border-radius:999px;padding:3px 10px;cursor:pointer}
+.copy-btn:hover{filter:brightness(1.05)}
+.tscroll{overflow-x:auto;max-width:100%}
+.ret-main{min-width:0;max-width:100%}
+@media(max-width:760px){ .ret-est{grid-template-columns:1fr} .ret-step{padding:14px 12px;gap:10px} .tax-table{font-size:12px} .tax-table td,.tax-table th{padding:8px 6px} }
+@media print{
+  body[data-print=taxreturn] #tab-tax{display:none!important}
+  body[data-print=taxreturn] #tab-taxreturn{display:block!important}
+  body[data-print=taxreturn] .copy-btn,body[data-print=taxreturn] .ret-check{display:none!important}
+}
 </style>
 </head>
 <body>
@@ -581,6 +627,7 @@ select.mini-input{appearance:none;-webkit-appearance:none;cursor:pointer}
       <button class="tab" data-tab="forecast">Forecast</button>
       <button class="tab" data-tab="ask">Ask</button>
       <button class="tab" data-tab="tax">Tax time</button>
+      <button class="tab" data-tab="taxreturn">Tax return</button>
       <button class="tab" data-tab="deductions">Deductions</button>
       <button class="tab" data-tab="jobs">Jobs</button>
       <button class="tab" data-tab="upload">Add payslips</button>
@@ -786,6 +833,22 @@ select.mini-input{appearance:none;-webkit-appearance:none;cursor:pointer}
       <div id="exp-body"></div>
     </div>
 
+
+    <!-- TAX RETURN -->
+    <div id="tab-taxreturn" class="tab-panel">
+      <div class="page-head">
+        <div>
+          <div class="page-title">Tax return</div>
+          <div class="page-sub" id="ret-sub"></div>
+        </div>
+        <div class="filters no-print">
+          <select class="select" id="ret-fy" aria-label="Financial year"></select>
+          <button class="btn btn-ghost" id="ret-print"><svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Print</button>
+        </div>
+      </div>
+      <div id="ret-body"></div>
+    </div>
+
     <!-- JOBS -->
     <div id="tab-jobs" class="tab-panel">
       <div class="page-head">
@@ -905,7 +968,7 @@ select.mini-input{appearance:none;-webkit-appearance:none;cursor:pointer}
 // encrypted ("wrapped") by a key derived from your passcode (PBKDF2, 600,000 rounds) and, optionally,
 // by a key that only your Touch ID passkey can produce (WebAuthn PRF). Nothing readable is stored on disk.
 var LS=window.localStorage;
-var PROTECTED=['payslips','jobs','folder_jobs','sync_seen','gemini_key','goals','forecasts','fc_draft','expenses','backup_before_redesign','backup_before_fun_update'];
+var PROTECTED=['payslips','jobs','folder_jobs','sync_seen','gemini_key','goals','forecasts','fc_draft','expenses','taxret','backup_before_redesign','backup_before_fun_update'];
 var VAULT={ key:null, cache:{}, unlocked:false, pending:Promise.resolve(), meta:null };
 var SS={
   getItem:function(k){
@@ -1281,6 +1344,7 @@ function switchTab(name){
   if(name==='ask'){ renderChat(false); setTimeout(function(){ $('chat-input').focus(); },50); }
   if(name==='tax') renderTax();
   if(name==='deductions') renderDeductions();
+  if(name==='taxreturn') renderTaxReturn();
   window.scrollTo({ top:0, behavior:'smooth' });
 }
 
@@ -2615,6 +2679,7 @@ function chatContext(){
       hours:{ weekday:+r.mf_hrs||0, saturday:+r.sat_hrs||0, sunday:+r.sun_hrs||0, publicHoliday:+r.ph_hrs||0 },
       pay:{ weekday:+r.mf_amt||0, saturday:+r.sat_amt||0, sunday:+r.sun_amt||0, publicHoliday:+r.ph_amt||0 },
       gross:+totalGrossOf(p).toFixed(2), tax:+(parseFloat(p.tax)||0), net:+(parseFloat(p.net)||0) }; }),
+    lastTaxReturn:taxReturnSummary(currentFY()-1),
     deductions:loadExpenses().map(function(x){ return { date:x.date, shop:x.merchant, what:x.description, category:catOf(x.category).l, paid:+(parseFloat(x.amount)||0), workUsePercent:workPctOf(x), claimable:+deductibleOf(x).toFixed(2) }; }),
     goals:loadGoals().map(function(g){ var pr=goalProgress(g); return { name:g.name, target:g.target, saved:+pr.saved.toFixed(2), deadline:g.deadline||null, percentOfTakeHomeSaved:g.pct, estimatedFinish:pr.eta?isoOf(pr.eta):null }; })
   });
@@ -3219,6 +3284,161 @@ function receiptFileName(x){
   return (x.date+' '+(x.merchant||x.description||'receipt')).replace(/[\\/:*?"<>|]/g,'-').slice(0,80)+'.'+ext;
 }
 
+
+// ══ TAX RETURN GUIDE ══
+// Resident individual rates by income year (keyed by the year the FY ends). Sources: ATO.
+var TAX_TABLES={
+  2024:{ label:'2023–24', brackets:[[18200,0],[45000,.19],[120000,.325],[180000,.37],[Infinity,.45]], medLow:26000, medHigh:32500 },
+  2025:{ label:'2024–25', brackets:[[18200,0],[45000,.16],[135000,.30],[190000,.37],[Infinity,.45]], medLow:27222, medHigh:34027 },
+  2026:{ label:'2025–26', brackets:[[18200,0],[45000,.16],[135000,.30],[190000,.37],[Infinity,.45]], medLow:28011, medHigh:35013 },
+  2027:{ label:'2026–27', brackets:[[18200,0],[45000,.15],[135000,.30],[190000,.37],[Infinity,.45]], medLow:28011, medHigh:35013, medEstimate:true }
+};
+// Which myTax deduction question each receipt category belongs to
+var D_LABELS={
+  D1:{ t:'Work-related car expenses' }, D2:{ t:'Work-related travel expenses' }, D3:{ t:'Work clothing, laundry and dry-cleaning expenses' },
+  D4:{ t:'Work-related self-education expenses' }, D5:{ t:'Other work-related expenses' }, D9:{ t:'Gifts or donations' }, D10:{ t:'Cost of managing tax affairs' }
+};
+var CAT_TO_D={ clothing:'D3', training:'D4', tools:'D5', phone:'D5', travel:'D2', membership:'D5', donations:'D9', tax:'D10', other:'D5' };
+var RET_FY=null;
+function loadRet(){ try{ return JSON.parse(SS.getItem('taxret')||'{}')||{}; }catch(e){ return {}; } }
+function saveRet(r){ SS.setItem('taxret', JSON.stringify(r)); }
+function retFor(fy){ var r=loadRet(); return r[fy]||{ checks:{}, interest:'', other:'' }; }
+function setRet(fy, patch){ var r=loadRet(); r[fy]=Object.assign(retFor(fy), patch); saveRet(r); }
+
+function bracketTax(ti, t){ var tax=0, prev=0; t.brackets.forEach(function(b){ if(ti>prev){ tax+=(Math.min(ti,b[0])-prev)*b[1]; } prev=b[0]; }); return tax; }
+function lito(ti){ if(ti<=37500) return 700; if(ti<=45000) return 700-(ti-37500)*0.05; if(ti<=66667) return Math.max(0,325-(ti-45000)*0.015); return 0; }
+function medicare(ti, t){ if(ti<=t.medLow) return 0; return Math.min(ti*0.02, (ti-t.medLow)*0.10); }
+
+function taxReturnData(fy){
+  var jobs=loadJobs();
+  var ps=loadPayslips().filter(function(p){ return getFY(p.date)===fy; });
+  var emp={};
+  ps.forEach(function(p){ var j=jobById(jobIdFor(p,jobs),jobs); var k=(p.employer||j.name||'Unknown employer').trim();
+    var e=emp[k]=emp[k]||{ name:k, job:j, gross:0, tax:0, n:0, first:p.date, last:p.date };
+    e.gross+=totalGrossOf(p); e.tax+=parseFloat(p.tax)||0; e.n++; if(p.date<e.first) e.first=p.date; if(p.date>e.last) e.last=p.date; });
+  var employers=Object.keys(emp).map(function(k){ return emp[k]; }).sort(function(a,b){ return b.gross-a.gross; });
+  var xs=(typeof loadExpenses==='function'?loadExpenses():[]).filter(function(x){ return getFY(x.date)===fy; });
+  var ded={};
+  xs.forEach(function(x){ var d=CAT_TO_D[x.category]||'D5'; (ded[d]=ded[d]||{ code:d, items:[], total:0 }); ded[d].items.push(x); ded[d].total+=deductibleOf(x); });
+  var dedList=Object.keys(ded).sort(function(a,b){ return parseInt(a.slice(1))-parseInt(b.slice(1)); }).map(function(k){ return ded[k]; });
+  var r=retFor(fy), interest=parseFloat(r.interest)||0, other=parseFloat(r.other)||0;
+  var wages=sumBy(employers,function(e){ return e.gross; }), withheld=sumBy(employers,function(e){ return e.tax; });
+  var deductions=sumBy(dedList,function(d){ return d.total; });
+  var taxable=Math.max(0, Math.floor(wages+interest+other-deductions));
+  var t=TAX_TABLES[fy], est=null;
+  if(t){ var base=bracketTax(taxable,t), off=Math.min(base,lito(taxable)), med=medicare(taxable,t), payable=Math.max(0,base-off)+med;
+    est={ base:base, lito:off, medicare:med, payable:payable, result:withheld-payable, table:t }; }
+  return { fy:fy, employers:employers, dedList:dedList, wages:wages, withheld:withheld, interest:interest, other:other, deductions:deductions, taxable:taxable, est:est, payslips:ps.length, r:r };
+}
+function taxReturnSummary(fy){
+  var d=taxReturnData(fy);
+  return { financialYear:fyLong(fy), salaryAndWages:d.employers.map(function(e){ return { employer:e.name, gross:+e.gross.toFixed(2), taxWithheld:+e.tax.toFixed(2) }; }),
+    deductions:d.dedList.map(function(x){ return { question:x.code+' '+D_LABELS[x.code].t, amount:+x.total.toFixed(2) }; }),
+    taxableIncomeEstimate:d.taxable, estimatedRefundOrDebt:d.est?+d.est.result.toFixed(2):null };
+}
+
+function copyBtn(v){ return '<button class="copy-btn" data-copy="'+esc(v)+'" title="Copy">Copy</button>'; }
+function money2(v){ return (Math.round(v*100)/100).toFixed(2); }
+function step(id, fy, title, body){
+  var done=!!retFor(fy).checks[id];
+  return '<div class="ret-step glass'+(done?' done':'')+'"><label class="ret-check"><input type="checkbox" data-retcheck="'+id+'"'+(done?' checked':'')+'/><span></span></label>'+
+    '<div class="ret-main"><div class="ret-title">'+title+'</div>'+body+'</div></div>';
+}
+function lodgeTiming(fy){
+  var now=new Date(), end=new Date(fy,5,30,23,59), due=new Date(fy,9,31,23,59);
+  if(now<=end) return { k:'open', t:'This financial year isn\'t over yet — these are your figures so far. You can lodge from July '+fy+', once your income statements say "Tax ready".' };
+  if(now<=due) return { k:'due', t:'You can lodge now (once your income statements in myTax say "Tax ready"). If you lodge yourself, it\'s due by 31 October '+fy+'.' };
+  return { k:'late', t:'The 31 October '+fy+' due date for lodging yourself has passed. If you haven\'t lodged (or sent a non-lodgment advice), do it as soon as you can.' };
+}
+
+function renderTaxReturn(){
+  ensureJobs();
+  var fys=[...new Set(loadPayslips().map(function(p){ return getFY(p.date); }).filter(Boolean).concat([currentFY()]))].sort(function(a,b){ return b-a; });
+  if(!RET_FY || fys.indexOf(RET_FY)<0) RET_FY=fys.indexOf(currentFY()-1)>=0?currentFY()-1:fys[0];
+  $('ret-fy').innerHTML=fys.map(function(fy){ return '<option value="'+fy+'"'+(fy===RET_FY?' selected':'')+'>'+fyLong(fy)+' return</option>'; }).join('');
+  var fy=RET_FY, d=taxReturnData(fy), tm=lodgeTiming(fy), t=TAX_TABLES[fy];
+  $('ret-sub').textContent='Income year 1 July '+(fy-1)+' – 30 June '+fy+' · everything you\'ll need for myTax, filled in from your tracker';
+  var html='<div class="ret-banner '+tm.k+'">'+(tm.k==='late'?'⏰ ':tm.k==='due'?'📅 ':'🕒 ')+esc(tm.t)+'</div>';
+
+  // Do I need to lodge?
+  var need, needCls;
+  if(d.withheld>0.004){ need='<strong>Yes — lodge a tax return.</strong> Tax was taken out of your pay ('+fmt(d.withheld)+'), and lodging is how you get back anything you\'ve overpaid.'; needCls='ok'; }
+  else if(d.taxable<18200){ need='<strong>Probably not.</strong> Your income in the tracker is under the $18,200 tax-free threshold and no tax was withheld, so you usually don\'t need to lodge a return. Instead, lodge a <strong>non-lodgment advice</strong> in myGov (ATO → Tax → Lodgments → Non-lodgment advice) so the ATO knows. You\'d still need to lodge if, for example, you had other income or an ABN.'; needCls='info'; }
+  else { need='<strong>Yes — lodge a tax return.</strong> Your income is over the $18,200 tax-free threshold, and with no tax withheld you may owe some tax.'; needCls='warn'; }
+  html+='<div class="glass ret-card"><div class="sec-title">Do I need to lodge?</div><div class="check '+(needCls==='warn'?'warn':'ok')+'"><span>'+need+'</span></div></div>';
+
+  // Estimate
+  if(d.est){
+    var res=d.est.result, refund=res>=0;
+    html+='<div class="glass ret-card ret-est"><div><div class="stat-label">Estimated '+(refund?'refund':'tax to pay')+'</div>'+
+      '<div class="ret-big '+(refund?'pos':'neg')+'">'+fmt(Math.abs(res))+'</div>'+
+      '<div class="goal-sub">A rough guide using '+t.label+' rates — myTax works out the real figure.'+(t.medEstimate?' Medicare levy thresholds for '+t.label+' aren\'t published yet, so last year\'s are used.':'')+'</div></div>'+
+      '<div class="fc-rows">'+
+        '<div><span>Salary and wages</span><span>'+fmt(d.wages)+'</span></div>'+
+        (d.interest?'<div><span>Bank interest</span><span>'+fmt(d.interest)+'</span></div>':'')+
+        (d.other?'<div><span>Other income</span><span>'+fmt(d.other)+'</span></div>':'')+
+        '<div><span>Deductions</span><span>−'+fmt(d.deductions)+'</span></div>'+
+        '<div><span><strong>Taxable income</strong></span><span><strong>'+fmt(d.taxable)+'</strong></span></div>'+
+        '<div><span>Tax on taxable income</span><span>'+fmt(d.est.base)+'</span></div>'+
+        '<div><span>Low income tax offset</span><span>−'+fmt(d.est.lito)+'</span></div>'+
+        '<div><span>Medicare levy</span><span>'+fmt(d.est.medicare)+'</span></div>'+
+        '<div><span>Tax payable</span><span>'+fmt(d.est.payable)+'</span></div>'+
+        '<div><span>Tax already withheld</span><span>−'+fmt(d.withheld)+'</span></div>'+
+      '</div></div>';
+  }
+
+  html+='<div class="section-head"><div class="section-title">Step by step in myTax</div><div class="section-actions no-print"><span class="goal-sub" id="ret-progress"></span></div></div>';
+  var steps=[];
+  steps.push(step('start', fy, '1. Get ready', '<ul class="ret-list"><li>Sign in to <strong>myGov</strong> and open the ATO → <strong>Lodge tax return</strong>.</li><li>Wait until each income statement says <strong>"Tax ready"</strong> (employers finalise them by 14 July).</li><li>Have your bank BSB and account number handy for the refund.</li></ul>'));
+  // Income statements
+  var empHtml=d.employers.length?'<div class="tscroll"><table class="tax-table"><thead><tr><th>Employer (payer)</th><th class="num">Gross payments</th><th></th><th class="num">Tax withheld</th><th></th></tr></thead><tbody>'+
+    d.employers.map(function(e){ return '<tr><td><span class="dot" style="background:'+e.job.color+';margin-right:6px"></span>'+esc(e.name)+'<div class="goal-sub">'+e.n+' payslip'+(e.n!==1?'s':'')+' · '+esc(e.first)+' to '+esc(e.last)+'</div></td>'+
+      '<td class="num">'+fmt(e.gross)+'</td><td>'+copyBtn(money2(e.gross))+'</td><td class="num">'+fmt(e.tax)+'</td><td>'+copyBtn(money2(e.tax))+'</td></tr>'; }).join('')+
+    '<tr><td><strong>Total</strong></td><td class="num"><strong>'+fmt(d.wages)+'</strong></td><td></td><td class="num"><strong>'+fmt(d.withheld)+'</strong></td><td></td></tr></tbody></table></div>'
+    :'<div class="sync-empty">No payslips in this financial year.</div>';
+  steps.push(step('income', fy, '2. Income statements (salary and wages)', '<p class="ret-p">myTax pre-fills these from your employers. <strong>Check each one matches your payslips</strong> below. If one is wrong or missing, ask that employer before you lodge.</p>'+empHtml));
+  // Other income
+  steps.push(step('other', fy, '3. Other income', '<p class="ret-p">Bank interest is usually pre-filled by your bank. Add it here so the estimate includes it (it isn\'t in your payslips).</p>'+
+    '<div class="form-grid ret-inputs"><div class="field"><label>Bank interest ($)</label><input class="input" type="number" min="0" step="0.01" data-retfield="interest" value="'+esc(d.r.interest||'')+'"/></div>'+
+    '<div class="field"><label>Any other income ($)</label><input class="input" type="number" min="0" step="0.01" data-retfield="other" value="'+esc(d.r.other||'')+'"/></div></div>'));
+  // Deductions
+  var dedHtml=d.dedList.length?d.dedList.map(function(x){
+    return '<div class="ret-ded"><div class="ret-ded-head"><span class="ret-code">'+x.code+'</span><strong>'+esc(D_LABELS[x.code].t)+'</strong><span class="ret-amt">'+fmt(x.total)+'</span>'+copyBtn(money2(x.total))+'</div>'+
+      '<ul class="ret-items">'+x.items.map(function(i){ return '<li><span>'+esc((i.description||i.merchant||'Expense')+(i.merchant&&i.description?' — '+i.merchant:''))+(workPctOf(i)<100?' ('+workPctOf(i)+'% work use)':'')+'</span><span>'+fmt(deductibleOf(i))+'</span></li>'; }).join('')+'</ul>'+
+      (x.code==='D5'?'<div class="goal-sub">In myTax, add each D5 item separately with a short description and amount.</div>':'')+
+      (x.code==='D2'?'<div class="goal-sub">If any of this travel was in your own car, it goes under D1 (car expenses) instead.</div>':'')+
+      (x.items.some(function(i){ return i.category==='tools' && (parseFloat(i.amount)||0)>300; })?'<div class="goal-sub">⚠️ Tools or equipment over $300 are usually claimed over several years, not all at once.</div>':'')+
+    '</div>'; }).join('')+'<div class="ret-total"><span>Total deductions</span><strong>'+fmt(d.deductions)+'</strong></div>'
+    :'<div class="sync-empty">No receipts saved for this year. Add them on the <strong>Deductions</strong> page if you have any.</div>';
+  steps.push(step('deductions', fy, '4. Deductions', '<p class="ret-p">In myTax, choose "You had deductions you want to claim", then enter these under each question.</p>'+dedHtml));
+  steps.push(step('medicare', fy, '5. Medicare and private health insurance', '<ul class="ret-list"><li><strong>Medicare levy:</strong> you usually don\'t need to enter anything. '+(t?'At your estimated taxable income it\'s '+(d.est.medicare>0?fmt(d.est.medicare):'$0, because you\'re under the '+fmt(t.medLow)+' low-income threshold')+'.':'')+'</li>'+
+    '<li><strong>Private health insurance:</strong> say whether you had hospital cover. If you\'re on a family policy, myTax usually pre-fills the details.</li><li><strong>Study loans (HELP etc.):</strong> only if you have one — it\'s pre-filled.</li></ul>'));
+  steps.push(step('lodge', fy, '6. Check and lodge', '<ul class="ret-list"><li>Compare myTax\'s estimate with the one above. Big difference? Something\'s probably missing or entered twice.</li><li>Lodge, then keep your payslips and receipts for 5 years — the <strong>Tax time</strong> page can zip them all up.</li><li>Refunds usually arrive in your bank in about 2 weeks.</li></ul>'));
+  html+='<div class="ret-steps">'+steps.join('')+'</div>';
+  html+='<div class="tax-note">This is a guide built from the payslips and receipts in your tracker, not tax advice. Your income statements in myTax are the official figures. Questions? Call the ATO on 13 28 61, or use a registered tax agent.</div>';
+  $('ret-body').innerHTML=html;
+  updateRetProgress();
+}
+function updateRetProgress(){
+  var c=retFor(RET_FY).checks, ids=['start','income','other','deductions','medicare','lodge'], n=ids.filter(function(i){ return c[i]; }).length;
+  var el=$('ret-progress'); if(el) el.textContent=n+' of '+ids.length+' done'+(n===ids.length?' 🎉':'');
+}
+function onRetEvent(e){
+  var t=e.target;
+  if(e.type==='click'){
+    var b=t.closest('[data-copy]');
+    if(b){ var v=b.dataset.copy; (navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(function(){ b.textContent='Copied'; setTimeout(function(){ b.textContent='Copy'; },1400); }).catch(function(){ prompt('Copy this:', v); }); }
+    return;
+  }
+  if(t.dataset.retcheck && e.type==='change'){
+    var r=retFor(RET_FY); r.checks[t.dataset.retcheck]=t.checked; setRet(RET_FY,{ checks:r.checks });
+    t.closest('.ret-step').classList.toggle('done', t.checked); updateRetProgress();
+    if(t.checked && ['start','income','other','deductions','medicare','lodge'].every(function(i){ return retFor(RET_FY).checks[i]; })){ confetti(); toast('🎉 Tax return done for '+fyLong(RET_FY)+'!'); }
+  }
+  if(t.dataset.retfield && e.type==='change'){ var p={}; p[t.dataset.retfield]=t.value; setRet(RET_FY,p); renderTaxReturn(); }
+}
+function printTaxReturn(){ document.body.setAttribute('data-print','taxreturn'); window.print(); setTimeout(function(){ document.body.removeAttribute('data-print'); },500); }
+
 // ══ WIRE UP ALL EVENTS ══
 document.addEventListener('DOMContentLoaded', function(){
   // Login
@@ -3329,6 +3549,11 @@ document.addEventListener('DOMContentLoaded', function(){
   $('exp-body').addEventListener('click', onExpClick);
   $('exp-fy').addEventListener('change', function(){ EXP_FY=parseInt(this.value,10); renderDeductions(); });
   $('exp-save-all').addEventListener('click', saveAllReceipts);
+
+  // Tax return guide
+  $('ret-fy').addEventListener('change', function(){ RET_FY=parseInt(this.value,10); renderTaxReturn(); });
+  $('ret-print').addEventListener('click', printTaxReturn);
+  ['click','change'].forEach(function(ev){ $('ret-body').addEventListener(ev, onRetEvent); });
 
   // Heatmap tooltip
   $('heatmap').addEventListener('mousemove', onHeatHover);
